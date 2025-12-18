@@ -228,17 +228,29 @@ async function generarResumen() {
 // Mostrar resumen
 function displayResumen(resumen) {
     console.log('Procesando resumen...');
+    console.log('Resumen crudo:', JSON.stringify(resumen));
     
-    // Primero convertir \\n literales a \n reales si existen
-    let resumenProcesado = resumen.replace(/\\n/g, '\n');
+    // Limpiar el contenido previo
+    elements.resumenContent.innerHTML = '';
     
-    // Luego convertir todos los \n a <br>
-    resumenProcesado = resumenProcesado.replace(/\n/g, '<br>');
+    // Dividir por saltos de línea y crear elementos <p> para cada párrafo
+    const lineas = resumen.split(/\\n|\n/);
     
-    console.log('Resumen procesado:', resumenProcesado);
+    lineas.forEach(linea => {
+        if (linea.trim()) { // Solo agregar líneas no vacías
+            const p = document.createElement('p');
+            p.textContent = linea.trim();
+            p.style.marginBottom = '0.5em';
+            elements.resumenContent.appendChild(p);
+        } else {
+            // Agregar espacio en blanco para líneas vacías
+            const br = document.createElement('br');
+            elements.resumenContent.appendChild(br);
+        }
+    });
     
-    elements.resumenContent.innerHTML = resumenProcesado;
     elements.resumenSection.classList.remove('hidden');
+    console.log('Resumen mostrado con', lineas.length, 'líneas');
 }
 
 // Mostrar conversación
