@@ -11,38 +11,56 @@ const state = {
 // Elementos del DOM - se inicializan despues
 const elements = {};
 
-// Funcion para obtener elemento de forma segura
-function getElement(id) {
-    const el = document.getElementById(id);
-    if (!el) {
-        console.error('[ERROR] Elemento no encontrado:', id);
-    } else {
-        console.log('[OK] Elemento encontrado:', id);
+// Funcion helper para obtener elemento de forma segura
+function safeGetElement(id) {
+    try {
+        return document.getElementById(id);
+    } catch (e) {
+        console.error('[ERROR] No se pudo obtener elemento:', id, e);
+        return null;
     }
-    return el;
+}
+
+// Funcion helper para agregar clase de forma segura
+function safeAddClass(element, className) {
+    try {
+        if (element && element.classList) {
+            element.classList.add(className);
+            return true;
+        }
+        return false;
+    } catch (e) {
+        console.error('[ERROR] No se pudo agregar clase:', e);
+        return false;
+    }
+}
+
+// Funcion helper para remover clase de forma segura
+function safeRemoveClass(element, className) {
+    try {
+        if (element && element.classList) {
+            element.classList.remove(className);
+            return true;
+        }
+        return false;
+    } catch (e) {
+        console.error('[ERROR] No se pudo remover clase:', e);
+        return false;
+    }
 }
 
 // Inicializar la aplicacion
 document.addEventListener('DOMContentLoaded', () => {
     console.log('[INIT] Inicializando aplicacion...');
     
-    // Inicializar elementos del DOM que SIEMPRE estan visibles
-    elements.chatSelect = getElement('chatSelect');
-    elements.fechaDesde = getElement('fechaDesde');
-    elements.fechaHasta = getElement('fechaHasta');
-    elements.btnGenerar = getElement('btnGenerar');
-    elements.loadingSpinner = getElement('loadingSpinner');
-    elements.resumenSection = getElement('resumenSection');
-    elements.resumenContent = getElement('resumenContent');
-    
-    // NO inicializar chatConversacionContent aqui porque puede estar en un tab oculto
-    // Lo obtendremos cuando lo necesitemos
+    // Inicializar elementos del DOM
+    elements.chatSelect = safeGetElement('chatSelect');
+    elements.fechaDesde = safeGetElement('fechaDesde');
+    elements.fechaHasta = safeGetElement('fechaHasta');
+    elements.btnGenerar = safeGetElement('btnGenerar');
     
     // Verificar que todos los elementos criticos existen
-    const elementosCriticos = ['chatSelect', 'fechaDesde', 'fechaHasta', 'btnGenerar'];
-    const todosExisten = elementosCriticos.every(key => elements[key] !== null);
-    
-    if (!todosExisten) {
+    if (!elements.chatSelect || !elements.fechaDesde || !elements.fechaHasta || !elements.btnGenerar) {
         console.error('[ERROR] Faltan elementos criticos del DOM');
         alert('Error: No se pudieron cargar todos los elementos de la pagina');
         return;
@@ -66,14 +84,14 @@ function initializeTabs() {
             const tabId = tab.dataset.tab;
             
             // Remover active de todos los tabs
-            tabs.forEach(t => t.classList.remove('active'));
-            tabContents.forEach(tc => tc.classList.remove('active'));
+            tabs.forEach(t => safeRemoveClass(t, 'active'));
+            tabContents.forEach(tc => safeRemoveClass(tc, 'active'));
             
             // Agregar active al tab clickeado
-            tab.classList.add('active');
-            const targetTab = document.getElementById(tabId);
+            safeAddClass(tab, 'active');
+            const targetTab = safeGetElement(tabId);
             if (targetTab) {
-                targetTab.classList.add('active');
+                safeAddClass(targetTab, 'active');
             }
         });
     });
@@ -186,21 +204,24 @@ async function generarResumen() {
     console.log('[START] Generando resumen...');
     
     try {
-        // Obtener elementos de forma segura (pueden no existir aun si estan en tabs ocultos)
-        const resumenSection = document.getElementById('resumenSection');
-        const loadingSpinner = document.getElementById('loadingSpinner');
-        const btnGenerar = document.getElementById('btnGenerar');
+        // Obtener elementos de forma segura
+        const resumenSection = safeGetElement('resumenSection');
+        const loadingSpinner = safeGetElement('loadingSpinner');
+        const btnGenerar = safeGetElement('btnGenerar');
         
-        // Ocultar secciones anteriores de forma segura
-        if (resumenSection) {
-            resumenSection.classList.add('hidden');
-        }
+        console.log('[DEBUG] Elementos:', {
+            resumenSection: resumenSection ? 'OK' : 'NULL',
+            loadingSpinner: loadingSpinner ? 'OK' : 'NULL',
+            btnGenerar: btnGenerar ? 'OK' : 'NULL'
+        });
+        
+        // Ocultar resumen anterior
+        safeAddClass(resumenSection, 'hidden');
         
         // Mostrar loading
-        if (loadingSpinner) {
-            loadingSpinner.classList.remove('hidden');
-        }
+        safeRemoveClass(loadingSpinner, 'hidden');
         
+        // Deshabilitar boton
         if (btnGenerar) {
             btnGenerar.disabled = true;
         }
@@ -256,16 +277,13 @@ async function generarResumen() {
         
     } catch (error) {
         console.error('[ERROR] Al generar resumen:', error);
-        alert('Error al generar el resumen: ' + error.message + '\n\nRevisa la consola para mas detalles.');
-        showNotification('Error al generar el resumen. Por favor, intente nuevamente.', 'error');
+        alert('Error al generar el resumen: ' + error.message);
     } finally {
-        // Ocultar loading
-        const loadingSpinner = document.getElementById('loadingSpinner');
-        const btnGenerar = document.getElementById('btnGenerar');
+        // Ocultar loading y habilitar boton
+        const loadingSpinner = safeGetElement('loadingSpinner');
+        const btnGenerar = safeGetElement('btnGenerar');
         
-        if (loadingSpinner) {
-            loadingSpinner.classList.add('hidden');
-        }
+        safeAddClass(loadingSpinner, 'hidden');
         
         if (btnGenerar) {
             btnGenerar.disabled = false;
@@ -275,11 +293,11 @@ async function generarResumen() {
 
 // Mostrar resumen
 function displayResumen(resumen) {
-    const resumenContent = document.getElementById('resumenContent');
-    const resumenSection = document.getElementById('resumenSection');
+    const resumenContent = safeGetElement('resumenContent');
+    const resumenSection = safeGetElement('resumenSection');
     
     if (!resumenContent || !resumenSection) {
-        console.error('[ERROR] No se pueden mostrar el resumen: elementos no encontrados');
+        console.error('[ERROR] No se pueden mostrar el resumen');
         return;
     }
     
@@ -288,16 +306,15 @@ function displayResumen(resumen) {
     // Convertir \n a saltos de linea HTML
     const resumenHTML = resumen.replace(/\n/g, '<br>');
     resumenContent.innerHTML = '<div>' + resumenHTML + '</div>';
-    resumenSection.classList.remove('hidden');
+    safeRemoveClass(resumenSection, 'hidden');
 }
 
 // Mostrar conversacion en el tab Chat
 function displayConversacion(conversacion) {
-    // Obtener el elemento en el momento de usarlo, no al inicializar
-    const chatConversacionContent = document.getElementById('chatConversacionContent');
+    const chatConversacionContent = safeGetElement('chatConversacionContent');
     
     if (!chatConversacionContent) {
-        console.error('[ERROR] No se puede mostrar conversacion: elemento no encontrado');
+        console.error('[ERROR] No se puede mostrar conversacion');
         return;
     }
     
