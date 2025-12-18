@@ -193,10 +193,13 @@ async function generarResumen() {
         
         const data = await response.json();
         console.log('✅ Respuesta recibida:', data);
-        
+        console.log('🔍 Claves en la respuesta:', Object.keys(data));
+        console.log('🔍 Tipo de data.conversacion:', typeof data.conversacion);
+        console.log('🔍 Es Array data.conversacion:', Array.isArray(data.conversacion));
+
         // Guardar datos
         state.conversacionData = data;
-        
+
         // ============ MOSTRAR RESUMEN ============
         if (data.resumen) {
             console.log('📝 Mostrando resumen...');
@@ -204,16 +207,29 @@ async function generarResumen() {
         } else {
             console.error('❌ No hay resumen en la respuesta');
         }
-        
+
         // ============ MOSTRAR CONVERSACIÓN ============
-        if (data.conversacion && Array.isArray(data.conversacion)) {
-            console.log('💬 Mostrando conversación con', data.conversacion.length, 'mensajes');
-            displayConversacion(data.conversacion, data.diccionario);
-            
-            // Cambiar automáticamente a la pestaña Chat
-            setTimeout(() => {
-                switchToTab('chat');
-            }, 500);
+        if (data.conversacion) {
+            // Si conversacion es un array de objetos (formato estructurado)
+            if (Array.isArray(data.conversacion)) {
+                console.log('💬 Mostrando conversación con', data.conversacion.length, 'mensajes');
+                displayConversacion(data.conversacion, data.diccionario);
+
+                // Cambiar automáticamente a la pestaña Chat
+                setTimeout(() => {
+                    switchToTab('chat');
+                }, 500);
+            }
+            // Si conversacion es un string (formato de texto plano)
+            else if (typeof data.conversacion === 'string') {
+                console.log('💬 Mostrando conversación en formato texto');
+                displayConversacionTexto(data.conversacion);
+
+                // Cambiar automáticamente a la pestaña Chat
+                setTimeout(() => {
+                    switchToTab('chat');
+                }, 500);
+            }
         } else {
             console.log('ℹ️ No hay conversación en la respuesta');
         }
@@ -233,22 +249,14 @@ async function generarResumen() {
 function displayResumen(resumen) {
     console.log('📄 displayResumen() ejecutándose...');
     console.log('Texto completo recibido:', resumen);
-    
-   // Reemplazar los marcadores ###NEWLINE### con saltos de línea reales
 
+    // Reemplazar los marcadores ###NEWLINE### con saltos de línea reales
     const resumenConSaltos = resumen.replace(/###NEWLINE###/g, '\n');
 
- 
-
     // Usar textContent que automáticamente preserva saltos de línea
-
     elements.resumenContent.textContent = resumenConSaltos;
-
     elements.resumenContent.style.whiteSpace = 'pre-wrap';
-
     elements.resumenSection.classList.remove('hidden');
-
- 
 
     console.log('✅ Resumen mostrado con saltos de línea');
 }
@@ -276,6 +284,34 @@ function displayConversacion(conversacion, diccionario) {
     });
     
     console.log('✅ Conversación mostrada. Total elementos:', elements.conversacionContent.children.length);
+}
+
+// Mostrar conversación en formato texto
+function displayConversacionTexto(conversacionTexto) {
+    console.log('💬 displayConversacionTexto() ejecutándose...');
+
+    // Limpiar contenido anterior
+    elements.conversacionContent.innerHTML = '';
+
+    // Verificar que conversacionSection esté visible
+    elements.conversacionSection.classList.remove('hidden');
+
+    // Limpiar la info anterior
+    elements.conversacionInfo.innerHTML = '<p class="placeholder-text">Conversación en formato texto</p>';
+
+    // Crear un div para mostrar el texto de la conversación
+    const conversacionDiv = document.createElement('div');
+    conversacionDiv.className = 'conversacion-texto';
+    conversacionDiv.style.whiteSpace = 'pre-wrap';
+    conversacionDiv.style.padding = 'var(--spacing-md)';
+    conversacionDiv.style.backgroundColor = 'var(--bg-secondary)';
+    conversacionDiv.style.borderRadius = 'var(--border-radius)';
+    conversacionDiv.style.lineHeight = '1.6';
+    conversacionDiv.textContent = conversacionTexto;
+
+    elements.conversacionContent.appendChild(conversacionDiv);
+
+    console.log('✅ Conversación en formato texto mostrada');
 }
 
 // Asignar colores a usuarios
@@ -372,6 +408,47 @@ function escapeHtml(text) {
 function showNotification(message, type = 'info') {
     console.log(`[${type.toUpperCase()}] ${message}`);
 }
+
+// Copiar resumen al portapapeles
+async function copySummaryToClipboard() {
+    const btnCopy = document.getElementById('btnCopySummary');
+    const resumenText = elements.resumenContent.textContent;
+
+    if (!resumenText || resumenText.trim() === '') {
+        showNotification('No hay resumen para copiar', 'error');
+        return;
+    }
+
+    try {
+        await navigator.clipboard.writeText(resumenText);
+
+        // Cambiar el texto y estilo del botón temporalmente
+        const originalText = btnCopy.innerHTML;
+        btnCopy.innerHTML = '✓ Copiado!';
+        btnCopy.classList.add('copied');
+
+        // Restaurar después de 2 segundos
+        setTimeout(() => {
+            btnCopy.innerHTML = originalText;
+            btnCopy.classList.remove('copied');
+        }, 2000);
+
+        showNotification('Resumen copiado al portapapeles', 'success');
+        console.log('✅ Resumen copiado exitosamente');
+
+    } catch (error) {
+        console.error('Error al copiar al portapapeles:', error);
+        showNotification('Error al copiar. Por favor, intente nuevamente.', 'error');
+    }
+}
+
+// Event listener para el botón de copiar
+document.addEventListener('DOMContentLoaded', () => {
+    const btnCopy = document.getElementById('btnCopySummary');
+    if (btnCopy) {
+        btnCopy.addEventListener('click', copySummaryToClipboard);
+    }
+});
 
 // Funcionalidad del botón Admin
 document.querySelector('.btn-admin')?.addEventListener('click', () => {
