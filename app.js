@@ -192,13 +192,18 @@ async function generarResumen() {
         console.log('Respuesta recibida:', data);
         console.log('Tipo de resumen:', typeof data.resumen);
         console.log('Resumen crudo:', data.resumen);
+        console.log('¿Existe data.resumen?', !!data.resumen);
         
         // Guardar datos
         state.conversacionData = data;
         
-        // Mostrar resumen
+        // Mostrar resumen - SIEMPRE intentar mostrar aunque sea vacío
+        console.log('Intentando llamar a displayResumen...');
         if (data.resumen) {
+            console.log('Llamando displayResumen con:', data.resumen.substring(0, 50));
             displayResumen(data.resumen);
+        } else {
+            console.error('ERROR: data.resumen está vacío o undefined');
         }
         
         // Mostrar conversación
