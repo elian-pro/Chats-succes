@@ -19,7 +19,8 @@ const elements = {
     resumenContent: document.getElementById('resumenContent'),
     conversacionSection: document.getElementById('conversacionSection'),
     conversacionInfo: document.getElementById('conversacionInfo'),
-    conversacionContent: document.getElementById('conversacionContent')
+    conversacionContent: document.getElementById('conversacionContent'),
+    chatConversacionContent: document.getElementById('chatConversacionContent') // NUEVO
 };
 
 // Inicializar la aplicación
