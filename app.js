@@ -193,10 +193,13 @@ async function generarResumen() {
         
         const data = await response.json();
         console.log('✅ Respuesta recibida:', data);
-        
+        console.log('🔍 Claves en la respuesta:', Object.keys(data));
+        console.log('🔍 Tipo de data.conversacion:', typeof data.conversacion);
+        console.log('🔍 Es Array data.conversacion:', Array.isArray(data.conversacion));
+
         // Guardar datos
         state.conversacionData = data;
-        
+
         // ============ MOSTRAR RESUMEN ============
         if (data.resumen) {
             console.log('📝 Mostrando resumen...');
@@ -204,18 +207,19 @@ async function generarResumen() {
         } else {
             console.error('❌ No hay resumen en la respuesta');
         }
-        
+
         // ============ MOSTRAR CONVERSACIÓN ============
         if (data.conversacion && Array.isArray(data.conversacion)) {
             console.log('💬 Mostrando conversación con', data.conversacion.length, 'mensajes');
             displayConversacion(data.conversacion, data.diccionario);
-            
+
             // Cambiar automáticamente a la pestaña Chat
             setTimeout(() => {
                 switchToTab('chat');
             }, 500);
         } else {
             console.log('ℹ️ No hay conversación en la respuesta');
+            console.log('🔍 Contenido de data.conversacion:', data.conversacion);
         }
         
         showNotification('Resumen generado exitosamente', 'success');
