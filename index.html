@@ -22,10 +22,10 @@
         <!-- Tabs -->
         <div class="tabs">
             <button class="tab active" data-tab="resumen">Resumen</button>
-    <button class="tab" data-tab="chat">Chat</button>
-</div>
+            <button class="tab" data-tab="chat">Chat</button>
+        </div>
 
-        <!-- Tab Content: Conversaciones -->
+        <!-- Tab Content: Resumen (antes Conversaciones) -->
         <div class="tab-content active" id="resumen">
             <!-- Filtros -->
             <div class="filters-card">
@@ -74,23 +74,15 @@
                     <!-- El resumen se cargará aquí -->
                 </div>
             </div>
-
-            <!-- Conversación -->
-            <div id="conversacionSection" class="section-card hidden">
-                <h3 class="section-title">💬 Conversación Completa</h3>
-                <div class="conversacion-info" id="conversacionInfo">
-                    <!-- Info de la conversación -->
-                </div>
-                <div id="conversacionContent" class="conversacion-content">
-                    <!-- Los mensajes se cargarán aquí -->
-                </div>
-            </div>
         </div>
 
-        <!-- Tab Content: Estadísticas (placeholder) -->
-        <div class="section-card">
-        <h3 class="section-title">💬 Chat</h3>
-        <div id="chatConversacionContent" class="conversacion-content">
+        <!-- Tab Content: Chat (antes Estadísticas) -->
+        <div class="tab-content" id="chat">
+            <div class="section-card">
+                <h3 class="section-title">💬 Conversación Completa</h3>
+                <div id="chatConversacionContent" class="conversacion-content">
+                    <!-- La conversación se cargará aquí -->
+                </div>
             </div>
         </div>
     </main>
