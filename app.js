@@ -17,10 +17,7 @@ const elements = {
     loadingSpinner: document.getElementById('loadingSpinner'),
     resumenSection: document.getElementById('resumenSection'),
     resumenContent: document.getElementById('resumenContent'),
-    conversacionSection: document.getElementById('conversacionSection'),
-    conversacionInfo: document.getElementById('conversacionInfo'),
-    conversacionContent: document.getElementById('conversacionContent'),
-    chatConversacionContent: document.getElementById('chatConversacionContent') // NUEVO
+    chatConversacionContent: document.getElementById('chatConversacionContent')
 };
 
 // Inicializar la aplicación
@@ -142,7 +139,7 @@ async function generarResumen() {
     try {
         // Ocultar secciones anteriores
         elements.resumenSection.classList.add('hidden');
-        elements.conversacionSection.classList.add('hidden');
+        elements.chatConversacionContent.innerHTML = '';
         
         // Mostrar loading
         elements.loadingSpinner.classList.remove('hidden');
@@ -177,12 +174,14 @@ async function generarResumen() {
         state.conversacionData = data;
         
         // Mostrar resumen
-function displayResumen(resumen) {
-    // Convertir \n a saltos de línea HTML
-    const resumenHTML = resumen.replace(/\n/g, '<br>');
-    elements.resumenContent.innerHTML = `<div>${resumenHTML}</div>`;
-    elements.resumenSection.classList.remove('hidden');
-}
+        if (data.resumen) {
+            displayResumen(data.resumen);
+        }
+        
+        // Mostrar conversación
+        if (data.conversacion) {
+            displayConversacion(data.conversacion);
+        }
         
         showNotification('Resumen generado exitosamente', 'success');
         
@@ -197,93 +196,55 @@ function displayResumen(resumen) {
 
 // Mostrar resumen
 function displayResumen(resumen) {
-    // Convertir saltos de línea a <br> para HTML
+    // Convertir \n a saltos de línea HTML
     const resumenHTML = resumen.replace(/\n/g, '<br>');
-    elements.resumenContent.innerHTML = `<p>${resumenHTML}</p>`;
+    elements.resumenContent.innerHTML = `<div>${resumenHTML}</div>`;
     elements.resumenSection.classList.remove('hidden');
 }
-// Mostrar conversación
-function displayConversacion(conversacion, diccionario) {
+
+// Mostrar conversación en el tab Chat
+function displayConversacion(conversacion) {
     // Limpiar contenido anterior
-    elements.conversacionContent.innerHTML = '';
+    elements.chatConversacionContent.innerHTML = '';
     
-    // Asignar colores únicos a cada usuario
-    assignUserColors(conversacion, diccionario);
-    
-    // Mostrar información general
-    displayConversacionInfo(conversacion);
-    
-    // Crear elementos de mensaje
-    conversacion.forEach(msg => {
-        const mensajeElement = createMensajeElement(msg, diccionario);
-        elements.conversacionContent.appendChild(mensajeElement);
-    });
-    
-    elements.conversacionSection.classList.remove('hidden');
-}
-
-// Asignar colores a usuarios
-function assignUserColors(conversacion, diccionario) {
-    const uniqueUsers = new Set();
-    
-    conversacion.forEach(msg => {
-        const userId = msg.telefono || msg.Envia;
-        uniqueUsers.add(userId);
-    });
-    
-    let colorIndex = 0;
-    uniqueUsers.forEach(userId => {
-        state.userColors[userId] = colorIndex % 10; // 10 colores disponibles
-        colorIndex++;
-    });
-}
-
-// Mostrar información de la conversación
-function displayConversacionInfo(conversacion) {
-    const totalMensajes = conversacion.length;
-    const uniqueUsers = new Set(conversacion.map(msg => msg.telefono || msg.Envia)).size;
-    const fechaInicio = conversacion[0]?.timestamp || conversacion[0]?.created_at;
-    const fechaFin = conversacion[conversacion.length - 1]?.timestamp || conversacion[conversacion.length - 1]?.created_at;
-    
-    elements.conversacionInfo.innerHTML = `
-        <div class="info-item">
-            <span class="info-label">Total de mensajes</span>
-            <span class="info-value">${totalMensajes}</span>
-        </div>
-        <div class="info-item">
-            <span class="info-label">Participantes</span>
-            <span class="info-value">${uniqueUsers}</span>
-        </div>
-        <div class="info-item">
-            <span class="info-label">Período</span>
-            <span class="info-value">${formatDateTime(fechaInicio)} - ${formatDateTime(fechaFin)}</span>
-        </div>
-    `;
-}
-
-// Crear elemento de mensaje
-function createMensajeElement(mensaje, diccionario) {
-    const div = document.createElement('div');
-    div.className = 'mensaje';
-    
-    const userId = mensaje.telefono || mensaje.Envia;
-    const userName = diccionario?.[userId] || userId;
-    const colorIndex = state.userColors[userId] || 0;
-    
-    div.setAttribute('data-color', colorIndex);
-    
-    const timestamp = mensaje.timestamp || mensaje.created_at;
-    const mensajeTexto = mensaje.mensaje || mensaje.Mensaje || '';
-    
-    div.innerHTML = `
-        <div class="mensaje-header">
-            <span class="mensaje-usuario">${userName}</span>
-            <span class="mensaje-tiempo">${formatDateTime(timestamp)}</span>
-        </div>
-        <div class="mensaje-texto">${escapeHtml(mensajeTexto)}</div>
-    `;
-    
-    return div;
+    // Si la conversación es un string (texto), mostrarla como tal
+    if (typeof conversacion === 'string') {
+        const pre = document.createElement('pre');
+        pre.style.whiteSpace = 'pre-wrap';
+        pre.style.wordWrap = 'break-word';
+        pre.style.fontFamily = 'inherit';
+        pre.style.padding = '20px';
+        pre.style.backgroundColor = '#1a1a1a';
+        pre.style.borderRadius = '8px';
+        pre.style.lineHeight = '1.6';
+        pre.style.color = '#e0e0e0';
+        pre.textContent = conversacion;
+        elements.chatConversacionContent.appendChild(pre);
+    } 
+    // Si es un array (mensajes individuales), procesarlos
+    else if (Array.isArray(conversacion)) {
+        conversacion.forEach(msg => {
+            const mensajeDiv = document.createElement('div');
+            mensajeDiv.style.marginBottom = '15px';
+            mensajeDiv.style.padding = '10px';
+            mensajeDiv.style.backgroundColor = '#2a2a2a';
+            mensajeDiv.style.borderRadius = '8px';
+            
+            const timestamp = msg.timestamp || msg.created_at || '';
+            const usuario = msg.telefono || msg.Envia || 'Usuario';
+            const mensaje = msg.mensaje || msg.Mensaje || '';
+            
+            mensajeDiv.innerHTML = `
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <strong style="color: #4CAF50;">${escapeHtml(usuario)}</strong>
+                    <span style="color: #888; font-size: 0.9em;">${formatDateTime(timestamp)}</span>
+                </div>
+                <div style="color: #e0e0e0;">${escapeHtml(mensaje)}</div>
+            `;
+            
+            elements.chatConversacionContent.appendChild(mensajeDiv);
+        });
+    }
 }
 
 // Formatear fecha y hora
@@ -315,7 +276,6 @@ function escapeHtml(text) {
 // Mostrar notificación (simple)
 function showNotification(message, type = 'info') {
     // Por ahora solo mostramos en consola
-    // Puedes implementar un sistema de notificaciones más elaborado
     console.log(`[${type.toUpperCase()}] ${message}`);
     
     // Opcional: usar alert para errores críticos
@@ -323,8 +283,3 @@ function showNotification(message, type = 'info') {
         // alert(message); // Descomenta si quieres alerts
     }
 }
-
-// Funcionalidad del botón Admin (placeholder)
-document.querySelector('.btn-admin')?.addEventListener('click', () => {
-    alert('Funcionalidad de Admin próximamente');
-});
