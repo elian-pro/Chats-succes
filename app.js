@@ -233,13 +233,16 @@ async function generarResumen() {
 function displayResumen(resumen) {
     console.log('📄 displayResumen() ejecutándose...');
     console.log('Texto completo recibido:', resumen);
-    
-    // MÉTODO SIMPLE: Usar textContent que automáticamente preserva saltos de línea
-    elements.resumenContent.textContent = resumen;
+
+    // Reemplazar los marcadores ###NEWLINE### con saltos de línea reales
+    const resumenConSaltos = resumen.replace(/###NEWLINE###/g, '\n');
+
+    // Usar textContent que automáticamente preserva saltos de línea
+    elements.resumenContent.textContent = resumenConSaltos;
     elements.resumenContent.style.whiteSpace = 'pre-wrap';
     elements.resumenSection.classList.remove('hidden');
-    
-    console.log('✅ Resumen mostrado con pre-wrap');
+
+    console.log('✅ Resumen mostrado con saltos de línea');
 }
 
 // Mostrar conversación
