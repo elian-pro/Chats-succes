@@ -227,43 +227,29 @@ async function generarResumen() {
 
 // Mostrar resumen
 function displayResumen(resumen) {
+    console.log('=== INICIO displayResumen ===');
     console.log('Procesando resumen...');
     console.log('Resumen crudo:', resumen);
     console.log('Tipo:', typeof resumen);
+    console.log('Longitud:', resumen.length);
+    console.log('Primeros 100 chars:', resumen.substring(0, 100));
     
-    // El resumen puede venir como string con \n escapados
-    // Necesitamos parsear el JSON si viene así
-    let textoLimpio = resumen;
+    // Convertir DIRECTAMENTE los \n literales (no escapados) a <br>
+    let html = resumen
+        .split('\\n').join('<br>')  // Primero intentar con \\n
+        .split('\n').join('<br>');   // Luego con \n
     
-    // Si viene como string JSON escapado, parsearlo
-    if (typeof textoLimpio === 'string' && textoLimpio.includes('\\n')) {
-        try {
-            // Intentar parsear como JSON para desescapar
-            textoLimpio = JSON.parse('"' + textoLimpio.replace(/"/g, '\\"') + '"');
-        } catch (e) {
-            console.log('No se pudo parsear como JSON, usando replace directo');
-            // Si falla, hacer replace manual
-            textoLimpio = textoLimpio.replace(/\\n/g, '\n');
-        }
-    }
+    console.log('HTML generado (primeros 200 chars):', html.substring(0, 200));
     
-    console.log('Texto después de desescapar:', textoLimpio);
+    // Mejorar formato
+    html = html.replace(/###\s*(.+?)<br>/g, '<strong style="font-size: 1.1em; color: #4a9eff;">$1</strong><br>');
+    html = html.replace(/##\s*(.+?)<br>/g, '<strong style="font-size: 1.2em; color: #ffffff;">$1</strong><br><br>');
+    html = html.replace(/---/g, '<hr style="border: none; border-top: 1px solid #3a3a3a; margin: 1em 0;">');
     
-    // Ahora convertir los saltos de línea reales a HTML
-    let html = textoLimpio
-        .replace(/\n\n/g, '<br><br>')  // Doble salto
-        .replace(/\n/g, '<br>');        // Salto simple
-    
-    // Agregar estilos a los encabezados markdown
-    html = html.replace(/###\s*(.+?)<br>/g, '<strong style="font-size: 1.1em; color: var(--accent-primary);">$1</strong><br>');
-    html = html.replace(/##\s*(.+?)<br>/g, '<strong style="font-size: 1.2em; color: var(--text-primary);">$1</strong><br><br>');
-    
-    // Mejorar las líneas con --- 
-    html = html.replace(/---/g, '<hr style="border: none; border-top: 1px solid var(--border-color); margin: 1em 0;">');
-    
+    console.log('Asignando HTML al contenedor...');
     elements.resumenContent.innerHTML = html;
     elements.resumenSection.classList.remove('hidden');
-    console.log('Resumen procesado y mostrado');
+    console.log('=== FIN displayResumen ===');
 }
 
 // Mostrar conversación
