@@ -24,6 +24,7 @@ const elements = {
 
 // Inicializar la aplicación
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 ZEBRA Dashboard iniciado');
     initializeTabs();
     initializeDateInputs();
     loadChats();
@@ -158,6 +159,8 @@ function validateForm() {
 // Generar resumen y cargar conversación
 async function generarResumen() {
     try {
+        console.log('🔄 Iniciando generación de resumen...');
+        
         // Ocultar secciones anteriores
         elements.resumenSection.classList.add('hidden');
         elements.conversacionSection.classList.add('hidden');
@@ -173,7 +176,7 @@ async function generarResumen() {
             fechaHasta: state.fechaHasta
         };
         
-        console.log('Enviando payload:', payload);
+        console.log('📤 Enviando payload:', payload);
         
         // Hacer POST al webhook
         const response = await fetch(CONFIG.WEBHOOK_POST_CONVERSATION, {
@@ -190,33 +193,29 @@ async function generarResumen() {
         
         const data = await response.json();
         console.log('✅ Respuesta recibida:', data);
-        console.log('📝 Tipo de resumen:', typeof data.resumen);
-        console.log('📄 Resumen (primeros 100 chars):', data.resumen ? data.resumen.substring(0, 100) : 'VACIO');
-        console.log('💬 Conversacion existe?:', !!data.conversacion);
         
         // Guardar datos
         state.conversacionData = data;
         
         // ============ MOSTRAR RESUMEN ============
-        console.log('🔄 Intentando mostrar resumen...');
         if (data.resumen) {
-            console.log('✓ Resumen encontrado, llamando displayResumen()');
+            console.log('📝 Mostrando resumen...');
             displayResumen(data.resumen);
         } else {
-            console.error('❌ ERROR: data.resumen está vacío o undefined');
+            console.error('❌ No hay resumen en la respuesta');
         }
         
         // ============ MOSTRAR CONVERSACIÓN ============
         if (data.conversacion && Array.isArray(data.conversacion)) {
-            console.log('✓ Conversación encontrada con', data.conversacion.length, 'mensajes');
+            console.log('💬 Mostrando conversación con', data.conversacion.length, 'mensajes');
             displayConversacion(data.conversacion, data.diccionario);
             
-            // Cambiar automáticamente a la pestaña Chat después de cargar la conversación
+            // Cambiar automáticamente a la pestaña Chat
             setTimeout(() => {
                 switchToTab('chat');
             }, 500);
         } else {
-            console.error('❌ No hay conversación o no es un array:', data.conversacion);
+            console.log('ℹ️ No hay conversación en la respuesta');
         }
         
         showNotification('Resumen generado exitosamente', 'success');
@@ -230,36 +229,34 @@ async function generarResumen() {
     }
 }
 
-// Mostrar resumen
+// Mostrar resumen CON SALTOS DE LÍNEA
 function displayResumen(resumen) {
-    console.log('=== INICIO displayResumen ===');
-    console.log('Resumen original:', resumen);
+    console.log('📄 displayResumen() ejecutándose...');
+    console.log('Texto recibido (primeros 150 chars):', resumen.substring(0, 150));
     
-    // Crear un div temporal para procesar el texto
-    const tempDiv = document.createElement('div');
-    tempDiv.style.whiteSpace = 'pre-wrap';
-    tempDiv.textContent = resumen;
+    // Reemplazar el marcador personalizado por <br>
+    let html = resumen
+        .replace(/\|\|SALTO\|\|/g, '<br>')  // Nuestro marcador personalizado
+        .replace(/###NEWLINE###/g, '<br>')  // Alternativa por si cambias el marcador
+        .replace(/\\n/g, '<br>')            // Fallback para \n escapados
+        .replace(/\n/g, '<br>');            // Fallback para \n reales
     
-    // Obtener el HTML procesado
-    let html = tempDiv.innerHTML;
-    
-    console.log('HTML después de textContent:', html.substring(0, 200));
-    
-    // Mejorar formato de encabezados markdown
-    html = html.replace(/##\s+(.+?)(?=\n|$)/g, '<strong style="display:block; font-size:1.2em; margin:1em 0 0.5em; color:#ffffff;">$1</strong>');
-    html = html.replace(/###\s+(.+?)(?=\n|$)/g, '<strong style="display:block; font-size:1.1em; margin:0.8em 0 0.3em; color:#4a9eff;">$1</strong>');
-    
-    // Reemplazar --- con líneas
+    // Mejorar formato de markdown
+    html = html.replace(/##\s+(.+?)(<br>|$)/g, '<strong style="display:block; font-size:1.2em; margin:1em 0 0.5em; color:#fff;">$1</strong><br>');
+    html = html.replace(/###\s+(.+?)(<br>|$)/g, '<strong style="display:block; font-size:1.1em; margin:0.8em 0 0.3em; color:#4a9eff;">$1</strong><br>');
     html = html.replace(/---/g, '<hr style="border:none; border-top:1px solid #3a3a3a; margin:1em 0;">');
+    
+    console.log('HTML generado (primeros 200 chars):', html.substring(0, 200));
     
     elements.resumenContent.innerHTML = html;
     elements.resumenSection.classList.remove('hidden');
-    console.log('=== FIN displayResumen ===');
+    
+    console.log('✅ Resumen mostrado correctamente');
 }
 
 // Mostrar conversación
 function displayConversacion(conversacion, diccionario) {
-    console.log('Mostrando conversación con', conversacion.length, 'mensajes');
+    console.log('💬 displayConversacion() ejecutándose con', conversacion.length, 'mensajes');
     
     // Limpiar contenido anterior
     elements.conversacionContent.innerHTML = '';
@@ -275,12 +272,11 @@ function displayConversacion(conversacion, diccionario) {
     
     // Crear elementos de mensaje
     conversacion.forEach((msg, index) => {
-        console.log(`Procesando mensaje ${index + 1}:`, msg);
         const mensajeElement = createMensajeElement(msg, diccionario);
         elements.conversacionContent.appendChild(mensajeElement);
     });
     
-    console.log('Conversación mostrada. Total elementos en DOM:', elements.conversacionContent.children.length);
+    console.log('✅ Conversación mostrada. Total elementos:', elements.conversacionContent.children.length);
 }
 
 // Asignar colores a usuarios
@@ -294,7 +290,7 @@ function assignUserColors(conversacion, diccionario) {
     
     let colorIndex = 0;
     uniqueUsers.forEach(userId => {
-        state.userColors[userId] = colorIndex % 10; // 10 colores disponibles
+        state.userColors[userId] = colorIndex % 10;
         colorIndex++;
     });
 }
@@ -328,7 +324,6 @@ function createMensajeElement(mensaje, diccionario) {
     div.className = 'mensaje';
     
     const userId = mensaje.telefono || mensaje.Envia;
-    // Usar el nombre que viene en el mensaje o buscar en el diccionario
     const userName = mensaje.nombre || diccionario?.[userId] || userId;
     const colorIndex = state.userColors[userId] || 0;
     
@@ -374,19 +369,12 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Mostrar notificación (simple)
+// Mostrar notificación
 function showNotification(message, type = 'info') {
-    // Por ahora solo mostramos en consola
-    // Puedes implementar un sistema de notificaciones más elaborado
     console.log(`[${type.toUpperCase()}] ${message}`);
-    
-    // Opcional: usar alert para errores críticos
-    if (type === 'error') {
-        // alert(message); // Descomenta si quieres alerts
-    }
 }
 
-// Funcionalidad del botón Admin (placeholder)
+// Funcionalidad del botón Admin
 document.querySelector('.btn-admin')?.addEventListener('click', () => {
     alert('Funcionalidad de Admin próximamente');
 });
