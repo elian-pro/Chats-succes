@@ -1,4 +1,4 @@
-// Estado de la aplicacion
+// Estado de la aplicación
 const state = {
     chats: [],
     selectedChat: null,
@@ -17,10 +17,12 @@ const elements = {
     loadingSpinner: document.getElementById('loadingSpinner'),
     resumenSection: document.getElementById('resumenSection'),
     resumenContent: document.getElementById('resumenContent'),
-    chatConversacionContent: document.getElementById('chatConversacionContent')
+    conversacionSection: document.getElementById('conversacionSection'),
+    conversacionInfo: document.getElementById('conversacionInfo'),
+    conversacionContent: document.getElementById('conversacionContent')
 };
 
-// Inicializar la aplicacion
+// Inicializar la aplicación
 document.addEventListener('DOMContentLoaded', () => {
     initializeTabs();
     initializeDateInputs();
@@ -43,10 +45,7 @@ function initializeTabs() {
             
             // Agregar active al tab clickeado
             tab.classList.add('active');
-            const targetTab = document.getElementById(tabId);
-            if (targetTab) {
-                targetTab.classList.add('active');
-            }
+            document.getElementById(tabId).classList.add('active');
         });
     });
 }
@@ -57,7 +56,7 @@ function initializeDateInputs() {
     elements.fechaHasta.value = today;
     state.fechaHasta = today;
     
-    // Establecer fecha desde como hace 7 dias
+    // Establecer fecha desde como hace 7 días
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
     const weekAgoStr = weekAgo.toISOString().split('T')[0];
@@ -74,7 +73,7 @@ async function loadChats() {
         const response = await fetch(CONFIG.WEBHOOK_GET_CHATS);
         
         if (!response.ok) {
-            throw new Error('Error HTTP: ' + response.status);
+            throw new Error(`Error HTTP: ${response.status}`);
         }
         
         const data = await response.json();
@@ -83,7 +82,7 @@ async function loadChats() {
             state.chats = data.chats;
             populateChatSelect(data.chats);
         } else {
-            throw new Error('Formato de respuesta invalido');
+            throw new Error('Formato de respuesta inválido');
         }
         
     } catch (error) {
@@ -127,7 +126,7 @@ function setupEventListeners() {
         validateForm();
     });
     
-    // Boton generar
+    // Botón generar
     elements.btnGenerar.addEventListener('click', generarResumen);
 }
 
@@ -137,24 +136,15 @@ function validateForm() {
     elements.btnGenerar.disabled = !isValid;
 }
 
-// Generar resumen y cargar conversacion
+// Generar resumen y cargar conversación
 async function generarResumen() {
     try {
         // Ocultar secciones anteriores
-        if (elements.resumenSection) {
-            elements.resumenSection.classList.add('hidden');
-        }
-        
-        // Limpiar conversacion anterior
-        const chatContent = document.getElementById('chatConversacionContent');
-        if (chatContent) {
-            chatContent.innerHTML = '';
-        }
+        elements.resumenSection.classList.add('hidden');
+        elements.conversacionSection.classList.add('hidden');
         
         // Mostrar loading
-        if (elements.loadingSpinner) {
-            elements.loadingSpinner.classList.remove('hidden');
-        }
+        elements.loadingSpinner.classList.remove('hidden');
         elements.btnGenerar.disabled = true;
         
         // Preparar datos para el POST
@@ -176,7 +166,7 @@ async function generarResumen() {
         });
         
         if (!response.ok) {
-            throw new Error('Error HTTP: ' + response.status);
+            throw new Error(`Error HTTP: ${response.status}`);
         }
         
         const data = await response.json();
@@ -190,9 +180,9 @@ async function generarResumen() {
             displayResumen(data.resumen);
         }
         
-        // Mostrar conversacion
-        if (data.conversacion) {
-            displayConversacion(data.conversacion);
+        // Mostrar conversación
+        if (data.conversacion && Array.isArray(data.conversacion)) {
+            displayConversacion(data.conversacion, data.diccionario);
         }
         
         showNotification('Resumen generado exitosamente', 'success');
@@ -201,76 +191,100 @@ async function generarResumen() {
         console.error('Error al generar resumen:', error);
         showNotification('Error al generar el resumen. Por favor, intente nuevamente.', 'error');
     } finally {
-        if (elements.loadingSpinner) {
-            elements.loadingSpinner.classList.add('hidden');
-        }
+        elements.loadingSpinner.classList.add('hidden');
         elements.btnGenerar.disabled = false;
     }
 }
 
 // Mostrar resumen
 function displayResumen(resumen) {
-    if (!elements.resumenContent || !elements.resumenSection) {
-        console.error('Error: elementos de resumen no encontrados');
-        return;
-    }
-    
-    // Convertir saltos de linea a HTML
-    const resumenHTML = resumen.replace(/\n/g, '<br>');
-    elements.resumenContent.innerHTML = '<div>' + resumenHTML + '</div>';
+    elements.resumenContent.innerHTML = `<p>${resumen}</p>`;
     elements.resumenSection.classList.remove('hidden');
 }
 
-// Mostrar conversacion
-function displayConversacion(conversacion) {
-    const chatContent = document.getElementById('chatConversacionContent');
-    
-    if (!chatContent) {
-        console.error('Error: chatConversacionContent no encontrado');
-        return;
-    }
-    
+// Mostrar conversación
+function displayConversacion(conversacion, diccionario) {
     // Limpiar contenido anterior
-    chatContent.innerHTML = '';
+    elements.conversacionContent.innerHTML = '';
     
-    // Si la conversacion es un string (formato de texto)
-    if (typeof conversacion === 'string') {
-        const pre = document.createElement('pre');
-        pre.style.whiteSpace = 'pre-wrap';
-        pre.style.wordWrap = 'break-word';
-        pre.style.fontFamily = 'inherit';
-        pre.style.padding = '20px';
-        pre.style.backgroundColor = '#1a1a1a';
-        pre.style.borderRadius = '8px';
-        pre.style.lineHeight = '1.6';
-        pre.style.color = '#e0e0e0';
-        pre.textContent = conversacion;
-        chatContent.appendChild(pre);
-    }
-    // Si es un array de mensajes
-    else if (Array.isArray(conversacion)) {
-        conversacion.forEach(msg => {
-            const mensajeDiv = document.createElement('div');
-            mensajeDiv.className = 'mensaje';
-            mensajeDiv.style.marginBottom = '15px';
-            mensajeDiv.style.padding = '10px';
-            mensajeDiv.style.backgroundColor = '#2a2a2a';
-            mensajeDiv.style.borderRadius = '8px';
-            
-            const timestamp = msg.timestamp || msg.created_at || '';
-            const usuario = msg.nombre || msg.telefono || msg.Envia || 'Usuario';
-            const mensaje = msg.mensaje || msg.Mensaje || '';
-            
-            mensajeDiv.innerHTML = 
-                '<div style="display: flex; justify-content: space-between; margin-bottom: 5px;">' +
-                    '<strong style="color: #4CAF50;">' + escapeHtml(usuario) + '</strong>' +
-                    '<span style="color: #888; font-size: 0.9em;">' + formatDateTime(timestamp) + '</span>' +
-                '</div>' +
-                '<div style="color: #e0e0e0;">' + escapeHtml(mensaje) + '</div>';
-            
-            chatContent.appendChild(mensajeDiv);
-        });
-    }
+    // Asignar colores únicos a cada usuario
+    assignUserColors(conversacion, diccionario);
+    
+    // Mostrar información general
+    displayConversacionInfo(conversacion);
+    
+    // Crear elementos de mensaje
+    conversacion.forEach(msg => {
+        const mensajeElement = createMensajeElement(msg, diccionario);
+        elements.conversacionContent.appendChild(mensajeElement);
+    });
+    
+    elements.conversacionSection.classList.remove('hidden');
+}
+
+// Asignar colores a usuarios
+function assignUserColors(conversacion, diccionario) {
+    const uniqueUsers = new Set();
+    
+    conversacion.forEach(msg => {
+        const userId = msg.telefono || msg.Envia;
+        uniqueUsers.add(userId);
+    });
+    
+    let colorIndex = 0;
+    uniqueUsers.forEach(userId => {
+        state.userColors[userId] = colorIndex % 10; // 10 colores disponibles
+        colorIndex++;
+    });
+}
+
+// Mostrar información de la conversación
+function displayConversacionInfo(conversacion) {
+    const totalMensajes = conversacion.length;
+    const uniqueUsers = new Set(conversacion.map(msg => msg.telefono || msg.Envia)).size;
+    const fechaInicio = conversacion[0]?.timestamp || conversacion[0]?.created_at;
+    const fechaFin = conversacion[conversacion.length - 1]?.timestamp || conversacion[conversacion.length - 1]?.created_at;
+    
+    elements.conversacionInfo.innerHTML = `
+        <div class="info-item">
+            <span class="info-label">Total de mensajes</span>
+            <span class="info-value">${totalMensajes}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Participantes</span>
+            <span class="info-value">${uniqueUsers}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Período</span>
+            <span class="info-value">${formatDateTime(fechaInicio)} - ${formatDateTime(fechaFin)}</span>
+        </div>
+    `;
+}
+
+// Crear elemento de mensaje
+function createMensajeElement(mensaje, diccionario) {
+    const div = document.createElement('div');
+    div.className = 'mensaje';
+    
+    const userId = mensaje.telefono || mensaje.Envia;
+    // Usar el nombre que viene en el mensaje o buscar en el diccionario
+    const userName = mensaje.nombre || diccionario?.[userId] || userId;
+    const colorIndex = state.userColors[userId] || 0;
+    
+    div.setAttribute('data-color', colorIndex);
+    
+    const timestamp = mensaje.timestamp || mensaje.created_at;
+    const mensajeTexto = mensaje.mensaje || mensaje.Mensaje || '';
+    
+    div.innerHTML = `
+        <div class="mensaje-header">
+            <span class="mensaje-usuario">${userName}</span>
+            <span class="mensaje-tiempo">${formatDateTime(timestamp)}</span>
+        </div>
+        <div class="mensaje-texto">${escapeHtml(mensajeTexto)}</div>
+    `;
+    
+    return div;
 }
 
 // Formatear fecha y hora
@@ -294,14 +308,24 @@ function formatDateTime(dateString) {
 
 // Escapar HTML para prevenir XSS
 function escapeHtml(text) {
-    if (!text) return '';
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
 }
 
-// Mostrar notificacion
-function showNotification(message, type) {
-    type = type || 'info';
-    console.log('[' + type.toUpperCase() + '] ' + message);
+// Mostrar notificación (simple)
+function showNotification(message, type = 'info') {
+    // Por ahora solo mostramos en consola
+    // Puedes implementar un sistema de notificaciones más elaborado
+    console.log(`[${type.toUpperCase()}] ${message}`);
+    
+    // Opcional: usar alert para errores críticos
+    if (type === 'error') {
+        // alert(message); // Descomenta si quieres alerts
+    }
 }
+
+// Funcionalidad del botón Admin (placeholder)
+document.querySelector('.btn-admin')?.addEventListener('click', () => {
+    alert('Funcionalidad de Admin próximamente');
+});
