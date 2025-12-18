@@ -209,17 +209,29 @@ async function generarResumen() {
         }
 
         // ============ MOSTRAR CONVERSACIÓN ============
-        if (data.conversacion && Array.isArray(data.conversacion)) {
-            console.log('💬 Mostrando conversación con', data.conversacion.length, 'mensajes');
-            displayConversacion(data.conversacion, data.diccionario);
+        if (data.conversacion) {
+            // Si conversacion es un array de objetos (formato estructurado)
+            if (Array.isArray(data.conversacion)) {
+                console.log('💬 Mostrando conversación con', data.conversacion.length, 'mensajes');
+                displayConversacion(data.conversacion, data.diccionario);
 
-            // Cambiar automáticamente a la pestaña Chat
-            setTimeout(() => {
-                switchToTab('chat');
-            }, 500);
+                // Cambiar automáticamente a la pestaña Chat
+                setTimeout(() => {
+                    switchToTab('chat');
+                }, 500);
+            }
+            // Si conversacion es un string (formato de texto plano)
+            else if (typeof data.conversacion === 'string') {
+                console.log('💬 Mostrando conversación en formato texto');
+                displayConversacionTexto(data.conversacion);
+
+                // Cambiar automáticamente a la pestaña Chat
+                setTimeout(() => {
+                    switchToTab('chat');
+                }, 500);
+            }
         } else {
             console.log('ℹ️ No hay conversación en la respuesta');
-            console.log('🔍 Contenido de data.conversacion:', data.conversacion);
         }
         
         showNotification('Resumen generado exitosamente', 'success');
@@ -272,6 +284,34 @@ function displayConversacion(conversacion, diccionario) {
     });
     
     console.log('✅ Conversación mostrada. Total elementos:', elements.conversacionContent.children.length);
+}
+
+// Mostrar conversación en formato texto
+function displayConversacionTexto(conversacionTexto) {
+    console.log('💬 displayConversacionTexto() ejecutándose...');
+
+    // Limpiar contenido anterior
+    elements.conversacionContent.innerHTML = '';
+
+    // Verificar que conversacionSection esté visible
+    elements.conversacionSection.classList.remove('hidden');
+
+    // Limpiar la info anterior
+    elements.conversacionInfo.innerHTML = '<p class="placeholder-text">Conversación en formato texto</p>';
+
+    // Crear un div para mostrar el texto de la conversación
+    const conversacionDiv = document.createElement('div');
+    conversacionDiv.className = 'conversacion-texto';
+    conversacionDiv.style.whiteSpace = 'pre-wrap';
+    conversacionDiv.style.padding = 'var(--spacing-md)';
+    conversacionDiv.style.backgroundColor = 'var(--bg-secondary)';
+    conversacionDiv.style.borderRadius = 'var(--border-radius)';
+    conversacionDiv.style.lineHeight = '1.6';
+    conversacionDiv.textContent = conversacionTexto;
+
+    elements.conversacionContent.appendChild(conversacionDiv);
+
+    console.log('✅ Conversación en formato texto mostrada');
 }
 
 // Asignar colores a usuarios
