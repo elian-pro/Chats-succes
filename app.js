@@ -8,20 +8,45 @@ const state = {
     userColors: {}
 };
 
-// Elementos del DOM
+// Elementos del DOM - se inicializan después
 const elements = {};
+
+// Función para obtener elemento de forma segura
+function getElement(id) {
+    const el = document.getElementById(id);
+    if (!el) {
+        console.error(`❌ Elemento no encontrado: ${id}`);
+    } else {
+        console.log(`✅ Elemento encontrado: ${id}`);
+    }
+    return el;
+}
 
 // Inicializar la aplicación
 document.addEventListener('DOMContentLoaded', () => {
-    // Inicializar elementos del DOM después de que el DOM esté listo
-    elements.chatSelect = document.getElementById('chatSelect');
-    elements.fechaDesde = document.getElementById('fechaDesde');
-    elements.fechaHasta = document.getElementById('fechaHasta');
-    elements.btnGenerar = document.getElementById('btnGenerar');
-    elements.loadingSpinner = document.getElementById('loadingSpinner');
-    elements.resumenSection = document.getElementById('resumenSection');
-    elements.resumenContent = document.getElementById('resumenContent');
-    elements.chatConversacionContent = document.getElementById('chatConversacionContent');
+    console.log('🚀 Inicializando aplicación...');
+    
+    // Inicializar elementos del DOM
+    elements.chatSelect = getElement('chatSelect');
+    elements.fechaDesde = getElement('fechaDesde');
+    elements.fechaHasta = getElement('fechaHasta');
+    elements.btnGenerar = getElement('btnGenerar');
+    elements.loadingSpinner = getElement('loadingSpinner');
+    elements.resumenSection = getElement('resumenSection');
+    elements.resumenContent = getElement('resumenContent');
+    elements.chatConversacionContent = getElement('chatConversacionContent');
+    
+    // Verificar que todos los elementos críticos existen
+    const elementosCriticos = ['chatSelect', 'fechaDesde', 'fechaHasta', 'btnGenerar'];
+    const todosExisten = elementosCriticos.every(key => elements[key] !== null);
+    
+    if (!todosExisten) {
+        console.error('❌ Faltan elementos críticos del DOM');
+        alert('Error: No se pudieron cargar todos los elementos de la página');
+        return;
+    }
+    
+    console.log('✅ Todos los elementos cargados correctamente');
     
     initializeTabs();
     initializeDateInputs();
@@ -44,7 +69,10 @@ function initializeTabs() {
             
             // Agregar active al tab clickeado
             tab.classList.add('active');
-            document.getElementById(tabId).classList.add('active');
+            const targetTab = document.getElementById(tabId);
+            if (targetTab) {
+                targetTab.classList.add('active');
+            }
         });
     });
 }
@@ -52,23 +80,30 @@ function initializeTabs() {
 // Inicializar inputs de fecha con fecha de hoy
 function initializeDateInputs() {
     const today = new Date().toISOString().split('T')[0];
-    elements.fechaHasta.value = today;
-    state.fechaHasta = today;
+    if (elements.fechaHasta) {
+        elements.fechaHasta.value = today;
+        state.fechaHasta = today;
+    }
     
     // Establecer fecha desde como hace 7 días
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
     const weekAgoStr = weekAgo.toISOString().split('T')[0];
-    elements.fechaDesde.value = weekAgoStr;
-    state.fechaDesde = weekAgoStr;
+    if (elements.fechaDesde) {
+        elements.fechaDesde.value = weekAgoStr;
+        state.fechaDesde = weekAgoStr;
+    }
 }
 
 // Cargar lista de chats desde el webhook
 async function loadChats() {
+    if (!elements.chatSelect) return;
+    
     try {
         elements.chatSelect.innerHTML = '<option value="">Cargando chats...</option>';
         elements.chatSelect.disabled = true;
         
+        console.log('📡 Cargando chats desde:', CONFIG.WEBHOOK_GET_CHATS);
         const response = await fetch(CONFIG.WEBHOOK_GET_CHATS);
         
         if (!response.ok) {
@@ -76,6 +111,7 @@ async function loadChats() {
         }
         
         const data = await response.json();
+        console.log('✅ Chats recibidos:', data);
         
         if (data.chats && Array.isArray(data.chats)) {
             state.chats = data.chats;
@@ -85,7 +121,7 @@ async function loadChats() {
         }
         
     } catch (error) {
-        console.error('Error al cargar chats:', error);
+        console.error('❌ Error al cargar chats:', error);
         elements.chatSelect.innerHTML = '<option value="">Error al cargar chats</option>';
         showNotification('Error al cargar la lista de chats', 'error');
     } finally {
@@ -95,6 +131,8 @@ async function loadChats() {
 
 // Poblar el dropdown de chats
 function populateChatSelect(chats) {
+    if (!elements.chatSelect) return;
+    
     elements.chatSelect.innerHTML = '<option value="">Seleccione un chat...</option>';
     
     chats.forEach(chat => {
@@ -107,64 +145,62 @@ function populateChatSelect(chats) {
 
 // Configurar event listeners
 function setupEventListeners() {
-    // Chat select
-    elements.chatSelect.addEventListener('change', (e) => {
-        state.selectedChat = e.target.value;
-        validateForm();
-    });
+    if (elements.chatSelect) {
+        elements.chatSelect.addEventListener('change', (e) => {
+            state.selectedChat = e.target.value;
+            validateForm();
+        });
+    }
     
-    // Fecha desde
-    elements.fechaDesde.addEventListener('change', (e) => {
-        state.fechaDesde = e.target.value;
-        validateForm();
-    });
+    if (elements.fechaDesde) {
+        elements.fechaDesde.addEventListener('change', (e) => {
+            state.fechaDesde = e.target.value;
+            validateForm();
+        });
+    }
     
-    // Fecha hasta
-    elements.fechaHasta.addEventListener('change', (e) => {
-        state.fechaHasta = e.target.value;
-        validateForm();
-    });
+    if (elements.fechaHasta) {
+        elements.fechaHasta.addEventListener('change', (e) => {
+            state.fechaHasta = e.target.value;
+            validateForm();
+        });
+    }
     
-    // Botón generar
-    elements.btnGenerar.addEventListener('click', generarResumen);
+    if (elements.btnGenerar) {
+        elements.btnGenerar.addEventListener('click', generarResumen);
+    }
 }
 
 // Validar formulario
 function validateForm() {
+    if (!elements.btnGenerar) return;
+    
     const isValid = state.selectedChat && state.fechaDesde && state.fechaHasta;
     elements.btnGenerar.disabled = !isValid;
 }
 
 // Generar resumen y cargar conversación
 async function generarResumen() {
+    console.log('🔄 Generando resumen...');
+    
     try {
-        console.log('Iniciando generación de resumen...');
-        console.log('Elements:', {
-            resumenSection: elements.resumenSection,
-            chatConversacionContent: elements.chatConversacionContent,
-            loadingSpinner: elements.loadingSpinner
-        });
-        
-        // Verificar que los elementos existen
-        if (!elements.resumenSection) {
-            console.error('resumenSection no encontrado');
-            alert('Error: Elemento resumenSection no encontrado');
-            return;
+        // Ocultar secciones anteriores de forma segura
+        if (elements.resumenSection) {
+            elements.resumenSection.classList.add('hidden');
         }
         
-        if (!elements.chatConversacionContent) {
-            console.error('chatConversacionContent no encontrado');
-            alert('Error: Elemento chatConversacionContent no encontrado');
-            return;
+        if (elements.chatConversacionContent) {
+            elements.chatConversacionContent.innerHTML = '';
         }
-        
-        // Ocultar secciones anteriores
-        elements.resumenSection.classList.add('hidden');
-        elements.chatConversacionContent.innerHTML = '';
         
         // Mostrar loading
-        elements.loadingSpinner.classList.remove('hidden');
-        elements.btnGenerar.disabled = true;
+        if (elements.loadingSpinner) {
+            elements.loadingSpinner.classList.remove('hidden');
+        }
+        
+        if (elements.btnGenerar) {
+            elements.btnGenerar.disabled = true;
+        }
         
         // Preparar datos para el POST
         const payload = {
@@ -173,7 +209,8 @@ async function generarResumen() {
             fechaHasta: state.fechaHasta
         };
         
-        console.log('Enviando payload:', payload);
+        console.log('📤 Enviando payload:', payload);
+        console.log('📡 URL:', CONFIG.WEBHOOK_POST_CONVERSATION);
         
         // Hacer POST al webhook
         const response = await fetch(CONFIG.WEBHOOK_POST_CONVERSATION, {
@@ -184,12 +221,16 @@ async function generarResumen() {
             body: JSON.stringify(payload)
         });
         
+        console.log('📥 Response status:', response.status);
+        
         if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Error response:', errorText);
             throw new Error(`Error HTTP: ${response.status}`);
         }
         
         const data = await response.json();
-        console.log('Respuesta recibida:', data);
+        console.log('✅ Datos recibidos:', data);
         
         // Guardar datos
         state.conversacionData = data;
@@ -197,27 +238,43 @@ async function generarResumen() {
         // Mostrar resumen
         if (data.resumen) {
             displayResumen(data.resumen);
+        } else {
+            console.warn('⚠️ No se recibió resumen');
         }
         
         // Mostrar conversación
         if (data.conversacion) {
             displayConversacion(data.conversacion);
+        } else {
+            console.warn('⚠️ No se recibió conversación');
         }
         
         showNotification('Resumen generado exitosamente', 'success');
         
     } catch (error) {
-        console.error('Error al generar resumen:', error);
+        console.error('❌ Error al generar resumen:', error);
+        alert(`Error al generar el resumen: ${error.message}\n\nRevisa la consola para más detalles.`);
         showNotification('Error al generar el resumen. Por favor, intente nuevamente.', 'error');
     } finally {
-        elements.loadingSpinner.classList.add('hidden');
-        elements.btnGenerar.disabled = false;
+        // Ocultar loading
+        if (elements.loadingSpinner) {
+            elements.loadingSpinner.classList.add('hidden');
+        }
+        
+        if (elements.btnGenerar) {
+            elements.btnGenerar.disabled = false;
+        }
     }
 }
 
 // Mostrar resumen
 function displayResumen(resumen) {
-    if (!elements.resumenContent) return;
+    if (!elements.resumenContent || !elements.resumenSection) {
+        console.error('❌ No se pueden mostrar el resumen: elementos no encontrados');
+        return;
+    }
+    
+    console.log('📝 Mostrando resumen');
     
     // Convertir \n a saltos de línea HTML
     const resumenHTML = resumen.replace(/\n/g, '<br>');
@@ -228,9 +285,11 @@ function displayResumen(resumen) {
 // Mostrar conversación en el tab Chat
 function displayConversacion(conversacion) {
     if (!elements.chatConversacionContent) {
-        console.error('chatConversacionContent no encontrado');
+        console.error('❌ No se puede mostrar conversación: elemento no encontrado');
         return;
     }
+    
+    console.log('💬 Mostrando conversación');
     
     // Limpiar contenido anterior
     elements.chatConversacionContent.innerHTML = '';
@@ -305,9 +364,3 @@ function escapeHtml(text) {
 function showNotification(message, type = 'info') {
     console.log(`[${type.toUpperCase()}] ${message}`);
 }
-// AL FINAL DE app.js - Solo para diagnóstico
-console.log('=== DIAGNÓSTICO ===');
-setTimeout(() => {
-    console.log('chatConversacionContent:', document.getElementById('chatConversacionContent'));
-    console.log('resumenSection:', document.getElementById('resumenSection'));
-}, 1000);
