@@ -26,7 +26,7 @@ function getElement(id) {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('[INIT] Inicializando aplicacion...');
     
-    // Inicializar elementos del DOM
+    // Inicializar elementos del DOM que SIEMPRE estan visibles
     elements.chatSelect = getElement('chatSelect');
     elements.fechaDesde = getElement('fechaDesde');
     elements.fechaHasta = getElement('fechaHasta');
@@ -34,7 +34,9 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.loadingSpinner = getElement('loadingSpinner');
     elements.resumenSection = getElement('resumenSection');
     elements.resumenContent = getElement('resumenContent');
-    elements.chatConversacionContent = getElement('chatConversacionContent');
+    
+    // NO inicializar chatConversacionContent aqui porque puede estar en un tab oculto
+    // Lo obtendremos cuando lo necesitemos
     
     // Verificar que todos los elementos criticos existen
     const elementosCriticos = ['chatSelect', 'fechaDesde', 'fechaHasta', 'btnGenerar'];
@@ -107,7 +109,7 @@ async function loadChats() {
         const response = await fetch(CONFIG.WEBHOOK_GET_CHATS);
         
         if (!response.ok) {
-            throw new Error(`Error HTTP: ${response.status}`);
+            throw new Error('Error HTTP: ' + response.status);
         }
         
         const data = await response.json();
@@ -184,22 +186,23 @@ async function generarResumen() {
     console.log('[START] Generando resumen...');
     
     try {
-        // Ocultar secciones anteriores de forma segura
-        if (elements.resumenSection) {
-            elements.resumenSection.classList.add('hidden');
-        }
+        // Obtener elementos de forma segura (pueden no existir aun si estan en tabs ocultos)
+        const resumenSection = document.getElementById('resumenSection');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const btnGenerar = document.getElementById('btnGenerar');
         
-        if (elements.chatConversacionContent) {
-            elements.chatConversacionContent.innerHTML = '';
+        // Ocultar secciones anteriores de forma segura
+        if (resumenSection) {
+            resumenSection.classList.add('hidden');
         }
         
         // Mostrar loading
-        if (elements.loadingSpinner) {
-            elements.loadingSpinner.classList.remove('hidden');
+        if (loadingSpinner) {
+            loadingSpinner.classList.remove('hidden');
         }
         
-        if (elements.btnGenerar) {
-            elements.btnGenerar.disabled = true;
+        if (btnGenerar) {
+            btnGenerar.disabled = true;
         }
         
         // Preparar datos para el POST
@@ -226,7 +229,7 @@ async function generarResumen() {
         if (!response.ok) {
             const errorText = await response.text();
             console.error('[ERROR] Response:', errorText);
-            throw new Error(`Error HTTP: ${response.status}`);
+            throw new Error('Error HTTP: ' + response.status);
         }
         
         const data = await response.json();
@@ -257,19 +260,25 @@ async function generarResumen() {
         showNotification('Error al generar el resumen. Por favor, intente nuevamente.', 'error');
     } finally {
         // Ocultar loading
-        if (elements.loadingSpinner) {
-            elements.loadingSpinner.classList.add('hidden');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const btnGenerar = document.getElementById('btnGenerar');
+        
+        if (loadingSpinner) {
+            loadingSpinner.classList.add('hidden');
         }
         
-        if (elements.btnGenerar) {
-            elements.btnGenerar.disabled = false;
+        if (btnGenerar) {
+            btnGenerar.disabled = false;
         }
     }
 }
 
 // Mostrar resumen
 function displayResumen(resumen) {
-    if (!elements.resumenContent || !elements.resumenSection) {
+    const resumenContent = document.getElementById('resumenContent');
+    const resumenSection = document.getElementById('resumenSection');
+    
+    if (!resumenContent || !resumenSection) {
         console.error('[ERROR] No se pueden mostrar el resumen: elementos no encontrados');
         return;
     }
@@ -278,13 +287,16 @@ function displayResumen(resumen) {
     
     // Convertir \n a saltos de linea HTML
     const resumenHTML = resumen.replace(/\n/g, '<br>');
-    elements.resumenContent.innerHTML = '<div>' + resumenHTML + '</div>';
-    elements.resumenSection.classList.remove('hidden');
+    resumenContent.innerHTML = '<div>' + resumenHTML + '</div>';
+    resumenSection.classList.remove('hidden');
 }
 
 // Mostrar conversacion en el tab Chat
 function displayConversacion(conversacion) {
-    if (!elements.chatConversacionContent) {
+    // Obtener el elemento en el momento de usarlo, no al inicializar
+    const chatConversacionContent = document.getElementById('chatConversacionContent');
+    
+    if (!chatConversacionContent) {
         console.error('[ERROR] No se puede mostrar conversacion: elemento no encontrado');
         return;
     }
@@ -292,7 +304,7 @@ function displayConversacion(conversacion) {
     console.log('[DISPLAY] Mostrando conversacion');
     
     // Limpiar contenido anterior
-    elements.chatConversacionContent.innerHTML = '';
+    chatConversacionContent.innerHTML = '';
     
     // Si la conversacion es un string (texto), mostrarla como tal
     if (typeof conversacion === 'string') {
@@ -306,7 +318,7 @@ function displayConversacion(conversacion) {
         pre.style.lineHeight = '1.6';
         pre.style.color = '#e0e0e0';
         pre.textContent = conversacion;
-        elements.chatConversacionContent.appendChild(pre);
+        chatConversacionContent.appendChild(pre);
     } 
     // Si es un array (mensajes individuales), procesarlos
     else if (Array.isArray(conversacion)) {
@@ -328,7 +340,7 @@ function displayConversacion(conversacion) {
                 '</div>' +
                 '<div style="color: #e0e0e0;">' + escapeHtml(mensaje) + '</div>';
             
-            elements.chatConversacionContent.appendChild(mensajeDiv);
+            chatConversacionContent.appendChild(mensajeDiv);
         });
     }
 }
