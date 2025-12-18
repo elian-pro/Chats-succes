@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZEBRA - Dashboard de Monitoreo</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-title">
+                <h1 class="logo">ZEBRA</h1>
+                <h2 class="title">Dashboard de Monitoreo</h2>
+            </div>
+            <button class="btn-admin">Acceso Admin</button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" data-tab="conversaciones">Conversaciones</button>
+            <button class="tab" data-tab="estadisticas">Estadísticas</button>
+        </div>
+
+        <!-- Tab Content: Conversaciones -->
+        <div class="tab-content active" id="conversaciones">
+            <!-- Filtros -->
+            <div class="filters-card">
+                <h3 class="filters-title">Filtros</h3>
+                
+                <div class="filters-grid">
+                    <!-- Selector de Chat -->
+                    <div class="filter-group">
+                        <label for="chatSelect">Seleccionar Chat</label>
+                        <select id="chatSelect" class="select-input">
+                            <option value="">Cargando chats...</option>
+                        </select>
+                    </div>
+
+                    <!-- Fecha Desde -->
+                    <div class="filter-group">
+                        <label for="fechaDesde">Fecha Desde</label>
+                        <input type="date" id="fechaDesde" class="date-input">
+                    </div>
+
+                    <!-- Fecha Hasta -->
+                    <div class="filter-group">
+                        <label for="fechaHasta">Fecha Hasta</label>
+                        <input type="date" id="fechaHasta" class="date-input">
+                    </div>
+
+                    <!-- Botón Generar -->
+                    <div class="filter-group">
+                        <button id="btnGenerar" class="btn-primary" disabled>
+                            Generar Resumen
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading Spinner -->
+            <div id="loadingSpinner" class="loading-spinner hidden">
+                <div class="spinner"></div>
+                <p>Generando resumen y cargando conversación...</p>
+            </div>
+
+            <!-- Resumen -->
+            <div id="resumenSection" class="section-card hidden">
+                <h3 class="section-title">📊 Resumen de la Conversación</h3>
+                <div id="resumenContent" class="resumen-content">
+                    <!-- El resumen se cargará aquí -->
+                </div>
+            </div>
+
+            <!-- Conversación -->
+            <div id="conversacionSection" class="section-card hidden">
+                <h3 class="section-title">💬 Conversación Completa</h3>
+                <div class="conversacion-info" id="conversacionInfo">
+                    <!-- Info de la conversación -->
+                </div>
+                <div id="conversacionContent" class="conversacion-content">
+                    <!-- Los mensajes se cargarán aquí -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Estadísticas (placeholder) -->
+        <div class="tab-content" id="estadisticas">
+            <div class="section-card">
+                <h3 class="section-title">📈 Estadísticas</h3>
+                <p class="placeholder-text">Próximamente: Estadísticas y métricas de las conversaciones</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2025 ZEBRA - Todos los derechos reservados</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
