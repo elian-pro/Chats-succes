@@ -190,6 +190,8 @@ async function generarResumen() {
         
         const data = await response.json();
         console.log('Respuesta recibida:', data);
+        console.log('Tipo de resumen:', typeof data.resumen);
+        console.log('Resumen crudo:', data.resumen);
         
         // Guardar datos
         state.conversacionData = data;
@@ -201,12 +203,15 @@ async function generarResumen() {
         
         // Mostrar conversación
         if (data.conversacion && Array.isArray(data.conversacion)) {
+            console.log('Número de mensajes:', data.conversacion.length);
             displayConversacion(data.conversacion, data.diccionario);
             
             // Cambiar automáticamente a la pestaña Chat después de cargar la conversación
             setTimeout(() => {
                 switchToTab('chat');
-            }, 500); // Pequeño delay para que el usuario vea que se generó el resumen
+            }, 500);
+        } else {
+            console.error('No hay conversación o no es un array:', data.conversacion);
         }
         
         showNotification('Resumen generado exitosamente', 'success');
@@ -222,16 +227,29 @@ async function generarResumen() {
 
 // Mostrar resumen
 function displayResumen(resumen) {
-    // Convertir saltos de línea \n a <br> para HTML
-    const resumenFormateado = resumen.replace(/\n/g, '<br>');
-    elements.resumenContent.innerHTML = resumenFormateado;
+    console.log('Procesando resumen...');
+    
+    // Primero convertir \\n literales a \n reales si existen
+    let resumenProcesado = resumen.replace(/\\n/g, '\n');
+    
+    // Luego convertir todos los \n a <br>
+    resumenProcesado = resumenProcesado.replace(/\n/g, '<br>');
+    
+    console.log('Resumen procesado:', resumenProcesado);
+    
+    elements.resumenContent.innerHTML = resumenProcesado;
     elements.resumenSection.classList.remove('hidden');
 }
 
 // Mostrar conversación
 function displayConversacion(conversacion, diccionario) {
+    console.log('Mostrando conversación con', conversacion.length, 'mensajes');
+    
     // Limpiar contenido anterior
     elements.conversacionContent.innerHTML = '';
+    
+    // Verificar que conversacionSection esté visible
+    elements.conversacionSection.classList.remove('hidden');
     
     // Asignar colores únicos a cada usuario
     assignUserColors(conversacion, diccionario);
@@ -240,12 +258,13 @@ function displayConversacion(conversacion, diccionario) {
     displayConversacionInfo(conversacion);
     
     // Crear elementos de mensaje
-    conversacion.forEach(msg => {
+    conversacion.forEach((msg, index) => {
+        console.log(`Procesando mensaje ${index + 1}:`, msg);
         const mensajeElement = createMensajeElement(msg, diccionario);
         elements.conversacionContent.appendChild(mensajeElement);
     });
     
-    elements.conversacionSection.classList.remove('hidden');
+    console.log('Conversación mostrada. Total elementos en DOM:', elements.conversacionContent.children.length);
 }
 
 // Asignar colores a usuarios
