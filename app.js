@@ -229,29 +229,17 @@ async function generarResumen() {
     }
 }
 
-// Mostrar resumen CON SALTOS DE LÍNEA
+// Mostrar resumen CON SALTOS DE LÍNEA - VERSIÓN SIMPLE
 function displayResumen(resumen) {
     console.log('📄 displayResumen() ejecutándose...');
-    console.log('Texto recibido (primeros 150 chars):', resumen.substring(0, 150));
+    console.log('Texto completo recibido:', resumen);
     
-    // Reemplazar el marcador personalizado por <br>
-    let html = resumen
-        .replace(/###NEWLINE###/g, '<br>')  // Tu marcador actual
-        .replace(/\|\|SALTO\|\|/g, '<br>')  // Alternativa
-        .replace(/\\n/g, '<br>')            // Fallback para \n escapados
-        .replace(/\n/g, '<br>');            // Fallback para \n reales
-    
-    // Mejorar formato de markdown
-    html = html.replace(/##\s+(.+?)(<br>|$)/g, '<strong style="display:block; font-size:1.2em; margin:1em 0 0.5em; color:#fff;">$1</strong><br>');
-    html = html.replace(/###\s+(.+?)(<br>|$)/g, '<strong style="display:block; font-size:1.1em; margin:0.8em 0 0.3em; color:#4a9eff;">$1</strong><br>');
-    html = html.replace(/---/g, '<hr style="border:none; border-top:1px solid #3a3a3a; margin:1em 0;">');
-    
-    console.log('HTML generado (primeros 200 chars):', html.substring(0, 200));
-    
-    elements.resumenContent.innerHTML = html;
+    // MÉTODO SIMPLE: Usar textContent que automáticamente preserva saltos de línea
+    elements.resumenContent.textContent = resumen;
+    elements.resumenContent.style.whiteSpace = 'pre-wrap';
     elements.resumenSection.classList.remove('hidden');
     
-    console.log('✅ Resumen mostrado correctamente');
+    console.log('✅ Resumen mostrado con pre-wrap');
 }
 
 // Mostrar conversación
