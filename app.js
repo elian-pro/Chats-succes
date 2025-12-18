@@ -233,24 +233,29 @@ function displayResumen(resumen) {
     // Limpiar el contenido previo
     elements.resumenContent.innerHTML = '';
     
-    // Dividir por saltos de línea y crear elementos <p> para cada párrafo
-    const lineas = resumen.split(/\\n|\n/);
+    // Primero intentar dividir por diferentes tipos de saltos de línea
+    let texto = resumen;
     
-    lineas.forEach(linea => {
-        if (linea.trim()) { // Solo agregar líneas no vacías
-            const p = document.createElement('p');
-            p.textContent = linea.trim();
-            p.style.marginBottom = '0.5em';
-            elements.resumenContent.appendChild(p);
-        } else {
-            // Agregar espacio en blanco para líneas vacías
-            const br = document.createElement('br');
-            elements.resumenContent.appendChild(br);
-        }
-    });
+    // Reemplazar diferentes formatos de saltos de línea
+    texto = texto.replace(/\\n\\n/g, '<br><br>'); // Doble salto
+    texto = texto.replace(/\\n/g, '<br>'); // Salto simple
+    texto = texto.replace(/\n\n/g, '<br><br>'); // Salto real doble
+    texto = texto.replace(/\n/g, '<br>'); // Salto real simple
     
+    // Agregar saltos antes de marcadores comunes de sección
+    texto = texto.replace(/(\*\*\d+\sde\s\w+:?\*\*)/g, '<br><br>$1');
+    texto = texto.replace(/(###\s+\*\*[^*]+\*\*)/g, '<br><br>$1');
+    texto = texto.replace(/(---)/g, '<br><br>$1<br>');
+    
+    // Si después de todo no hay <br>, dividir por puntos seguidos
+    if (!texto.includes('<br>')) {
+        texto = texto.replace(/\.\s+-\s+/g, '.<br><br>- ');
+        texto = texto.replace(/\.\s+\*\*/g, '.<br><br>**');
+    }
+    
+    elements.resumenContent.innerHTML = texto;
     elements.resumenSection.classList.remove('hidden');
-    console.log('Resumen mostrado con', lineas.length, 'líneas');
+    console.log('Resumen procesado y mostrado');
 }
 
 // Mostrar conversación
