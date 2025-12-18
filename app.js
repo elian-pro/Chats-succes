@@ -233,25 +233,25 @@ async function generarResumen() {
 // Mostrar resumen
 function displayResumen(resumen) {
     console.log('=== INICIO displayResumen ===');
-    console.log('Procesando resumen...');
-    console.log('Resumen crudo:', resumen);
-    console.log('Tipo:', typeof resumen);
-    console.log('Longitud:', resumen.length);
-    console.log('Primeros 100 chars:', resumen.substring(0, 100));
+    console.log('Resumen original:', resumen);
     
-    // Convertir DIRECTAMENTE los \n literales (no escapados) a <br>
-    let html = resumen
-        .split('\\n').join('<br>')  // Primero intentar con \\n
-        .split('\n').join('<br>');   // Luego con \n
+    // Crear un div temporal para procesar el texto
+    const tempDiv = document.createElement('div');
+    tempDiv.style.whiteSpace = 'pre-wrap';
+    tempDiv.textContent = resumen;
     
-    console.log('HTML generado (primeros 200 chars):', html.substring(0, 200));
+    // Obtener el HTML procesado
+    let html = tempDiv.innerHTML;
     
-    // Mejorar formato
-    html = html.replace(/###\s*(.+?)<br>/g, '<strong style="font-size: 1.1em; color: #4a9eff;">$1</strong><br>');
-    html = html.replace(/##\s*(.+?)<br>/g, '<strong style="font-size: 1.2em; color: #ffffff;">$1</strong><br><br>');
-    html = html.replace(/---/g, '<hr style="border: none; border-top: 1px solid #3a3a3a; margin: 1em 0;">');
+    console.log('HTML después de textContent:', html.substring(0, 200));
     
-    console.log('Asignando HTML al contenedor...');
+    // Mejorar formato de encabezados markdown
+    html = html.replace(/##\s+(.+?)(?=\n|$)/g, '<strong style="display:block; font-size:1.2em; margin:1em 0 0.5em; color:#ffffff;">$1</strong>');
+    html = html.replace(/###\s+(.+?)(?=\n|$)/g, '<strong style="display:block; font-size:1.1em; margin:0.8em 0 0.3em; color:#4a9eff;">$1</strong>');
+    
+    // Reemplazar --- con líneas
+    html = html.replace(/---/g, '<hr style="border:none; border-top:1px solid #3a3a3a; margin:1em 0;">');
+    
     elements.resumenContent.innerHTML = html;
     elements.resumenSection.classList.remove('hidden');
     console.log('=== FIN displayResumen ===');
