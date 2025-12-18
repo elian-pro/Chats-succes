@@ -54,11 +54,14 @@ function initializeTabs() {
 function initializeDateInputs() {
     const today = new Date().toISOString().split('T')[0];
     elements.fechaHasta.value = today;
+    state.fechaHasta = today;
     
     // Establecer fecha desde como hace 7 días
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
-    elements.fechaDesde.value = weekAgo.toISOString().split('T')[0];
+    const weekAgoStr = weekAgo.toISOString().split('T')[0];
+    elements.fechaDesde.value = weekAgoStr;
+    state.fechaDesde = weekAgoStr;
 }
 
 // Cargar lista de chats desde el webhook
@@ -95,12 +98,19 @@ async function loadChats() {
 function populateChatSelect(chats) {
     elements.chatSelect.innerHTML = '<option value="">Seleccione un chat...</option>';
     
-    chats.forEach(chat => {
+    chats.forEach((chat, index) => {
         const option = document.createElement('option');
         option.value = chat;
         option.textContent = chat;
         elements.chatSelect.appendChild(option);
     });
+    
+    // Pre-seleccionar el primer chat si existe
+    if (chats.length > 0) {
+        elements.chatSelect.value = chats[0];
+        state.selectedChat = chats[0];
+        validateForm();
+    }
 }
 
 // Configurar event listeners
