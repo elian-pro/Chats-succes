@@ -198,10 +198,11 @@ async function generarResumen() {
 
 // Mostrar resumen
 function displayResumen(resumen) {
-    elements.resumenContent.innerHTML = `<p>${resumen}</p>`;
+    // Convertir saltos de línea a <br> para HTML
+    const resumenHTML = resumen.replace(/\n/g, '<br>');
+    elements.resumenContent.innerHTML = `<p>${resumenHTML}</p>`;
     elements.resumenSection.classList.remove('hidden');
 }
-
 // Mostrar conversación
 function displayConversacion(conversacion, diccionario) {
     // Limpiar contenido anterior
