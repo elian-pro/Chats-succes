@@ -176,14 +176,12 @@ async function generarResumen() {
         state.conversacionData = data;
         
         // Mostrar resumen
-        if (data.resumen) {
-            displayResumen(data.resumen);
-        }
-        
-        // Mostrar conversación
-        if (data.conversacion && Array.isArray(data.conversacion)) {
-            displayConversacion(data.conversacion, data.diccionario);
-        }
+function displayResumen(resumen) {
+    // Convertir \n a saltos de línea HTML
+    const resumenHTML = resumen.replace(/\n/g, '<br>');
+    elements.resumenContent.innerHTML = `<div>${resumenHTML}</div>`;
+    elements.resumenSection.classList.remove('hidden');
+}
         
         showNotification('Resumen generado exitosamente', 'success');
         
