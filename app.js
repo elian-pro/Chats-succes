@@ -296,8 +296,8 @@ function displayConversacionTexto(conversacionTexto) {
     // Verificar que conversacionSection esté visible
     elements.conversacionSection.classList.remove('hidden');
 
-    // Limpiar la info anterior
-    elements.conversacionInfo.innerHTML = '<p class="placeholder-text">Conversación en formato texto</p>';
+    // Ocultar la info (no se necesita para formato texto)
+    elements.conversacionInfo.style.display = 'none';
 
     // Crear un div para mostrar el texto de la conversación
     const conversacionDiv = document.createElement('div');
