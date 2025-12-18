@@ -9,19 +9,20 @@ const state = {
 };
 
 // Elementos del DOM
-const elements = {
-    chatSelect: document.getElementById('chatSelect'),
-    fechaDesde: document.getElementById('fechaDesde'),
-    fechaHasta: document.getElementById('fechaHasta'),
-    btnGenerar: document.getElementById('btnGenerar'),
-    loadingSpinner: document.getElementById('loadingSpinner'),
-    resumenSection: document.getElementById('resumenSection'),
-    resumenContent: document.getElementById('resumenContent'),
-    chatConversacionContent: document.getElementById('chatConversacionContent')
-};
+const elements = {};
 
 // Inicializar la aplicación
 document.addEventListener('DOMContentLoaded', () => {
+    // Inicializar elementos del DOM después de que el DOM esté listo
+    elements.chatSelect = document.getElementById('chatSelect');
+    elements.fechaDesde = document.getElementById('fechaDesde');
+    elements.fechaHasta = document.getElementById('fechaHasta');
+    elements.btnGenerar = document.getElementById('btnGenerar');
+    elements.loadingSpinner = document.getElementById('loadingSpinner');
+    elements.resumenSection = document.getElementById('resumenSection');
+    elements.resumenContent = document.getElementById('resumenContent');
+    elements.chatConversacionContent = document.getElementById('chatConversacionContent');
+    
     initializeTabs();
     initializeDateInputs();
     loadChats();
@@ -137,6 +138,13 @@ function validateForm() {
 // Generar resumen y cargar conversación
 async function generarResumen() {
     try {
+        // Verificar que los elementos existen
+        if (!elements.resumenSection || !elements.chatConversacionContent) {
+            console.error('Elementos del DOM no encontrados');
+            showNotification('Error: Elementos del DOM no encontrados', 'error');
+            return;
+        }
+        
         // Ocultar secciones anteriores
         elements.resumenSection.classList.add('hidden');
         elements.chatConversacionContent.innerHTML = '';
@@ -196,6 +204,8 @@ async function generarResumen() {
 
 // Mostrar resumen
 function displayResumen(resumen) {
+    if (!elements.resumenContent) return;
+    
     // Convertir \n a saltos de línea HTML
     const resumenHTML = resumen.replace(/\n/g, '<br>');
     elements.resumenContent.innerHTML = `<div>${resumenHTML}</div>`;
@@ -204,6 +214,11 @@ function displayResumen(resumen) {
 
 // Mostrar conversación en el tab Chat
 function displayConversacion(conversacion) {
+    if (!elements.chatConversacionContent) {
+        console.error('chatConversacionContent no encontrado');
+        return;
+    }
+    
     // Limpiar contenido anterior
     elements.chatConversacionContent.innerHTML = '';
     
@@ -275,11 +290,5 @@ function escapeHtml(text) {
 
 // Mostrar notificación (simple)
 function showNotification(message, type = 'info') {
-    // Por ahora solo mostramos en consola
     console.log(`[${type.toUpperCase()}] ${message}`);
-    
-    // Opcional: usar alert para errores críticos
-    if (type === 'error') {
-        // alert(message); // Descomenta si quieres alerts
-    }
 }
