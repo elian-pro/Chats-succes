@@ -189,26 +189,26 @@ async function generarResumen() {
         }
         
         const data = await response.json();
-        console.log('Respuesta recibida:', data);
-        console.log('Tipo de resumen:', typeof data.resumen);
-        console.log('Resumen crudo:', data.resumen);
-        console.log('¿Existe data.resumen?', !!data.resumen);
+        console.log('✅ Respuesta recibida:', data);
+        console.log('📝 Tipo de resumen:', typeof data.resumen);
+        console.log('📄 Resumen (primeros 100 chars):', data.resumen ? data.resumen.substring(0, 100) : 'VACIO');
+        console.log('💬 Conversacion existe?:', !!data.conversacion);
         
         // Guardar datos
         state.conversacionData = data;
         
-        // Mostrar resumen - SIEMPRE intentar mostrar aunque sea vacío
-        console.log('Intentando llamar a displayResumen...');
+        // ============ MOSTRAR RESUMEN ============
+        console.log('🔄 Intentando mostrar resumen...');
         if (data.resumen) {
-            console.log('Llamando displayResumen con:', data.resumen.substring(0, 50));
+            console.log('✓ Resumen encontrado, llamando displayResumen()');
             displayResumen(data.resumen);
         } else {
-            console.error('ERROR: data.resumen está vacío o undefined');
+            console.error('❌ ERROR: data.resumen está vacío o undefined');
         }
         
-        // Mostrar conversación
+        // ============ MOSTRAR CONVERSACIÓN ============
         if (data.conversacion && Array.isArray(data.conversacion)) {
-            console.log('Número de mensajes:', data.conversacion.length);
+            console.log('✓ Conversación encontrada con', data.conversacion.length, 'mensajes');
             displayConversacion(data.conversacion, data.diccionario);
             
             // Cambiar automáticamente a la pestaña Chat después de cargar la conversación
@@ -216,13 +216,13 @@ async function generarResumen() {
                 switchToTab('chat');
             }, 500);
         } else {
-            console.error('No hay conversación o no es un array:', data.conversacion);
+            console.error('❌ No hay conversación o no es un array:', data.conversacion);
         }
         
         showNotification('Resumen generado exitosamente', 'success');
         
     } catch (error) {
-        console.error('Error al generar resumen:', error);
+        console.error('❌ Error al generar resumen:', error);
         showNotification('Error al generar el resumen. Por favor, intente nuevamente.', 'error');
     } finally {
         elements.loadingSpinner.classList.add('hidden');
