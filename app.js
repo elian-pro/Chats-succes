@@ -305,3 +305,9 @@ function escapeHtml(text) {
 function showNotification(message, type = 'info') {
     console.log(`[${type.toUpperCase()}] ${message}`);
 }
+// AL FINAL DE app.js - Solo para diagnóstico
+console.log('=== DIAGNÓSTICO ===');
+setTimeout(() => {
+    console.log('chatConversacionContent:', document.getElementById('chatConversacionContent'));
+    console.log('resumenSection:', document.getElementById('resumenSection'));
+}, 1000);
