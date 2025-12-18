@@ -280,6 +280,19 @@ body {
     padding: var(--spacing-md);
     line-height: 1.8;
     color: var(--text-secondary);
+    white-space: pre-wrap; /* Preserva saltos de línea y espacios */
+    word-wrap: break-word;
+}
+
+/* NUEVO: Estilos para el resumen con mejor formato */
+.resumen-content br {
+    display: block;
+    content: "";
+    margin-top: 0.5em;
+}
+
+.resumen-content p {
+    margin-bottom: 1em;
 }
 
 /* Conversación Info */
@@ -319,6 +332,14 @@ body {
     max-height: 600px;
     overflow-y: auto;
     padding: var(--spacing-sm);
+}
+
+/* NUEVO: Si no hay mensajes, mostrar el contenedor limpio */
+.conversacion-content:empty {
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Custom Scrollbar */
@@ -375,6 +396,7 @@ body {
     color: var(--text-secondary);
     line-height: 1.5;
     word-wrap: break-word;
+    white-space: pre-wrap; /* NUEVO: Preserva saltos de línea en mensajes */
 }
 
 /* Colores dinámicos para usuarios (se aplicarán via JS) */
@@ -463,4 +485,22 @@ body {
 
 .section-card {
     animation: fadeIn 0.3s ease;
+}
+
+/* NUEVO: Transición suave al cambiar de tab */
+.tab-content {
+    animation: fadeIn 0.3s ease;
+}
+
+/* NUEVO: Mejorar legibilidad del resumen */
+.resumen-content strong,
+.resumen-content b {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.resumen-content em,
+.resumen-content i {
+    color: var(--accent-primary);
+    font-style: italic;
 }
