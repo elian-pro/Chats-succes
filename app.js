@@ -198,7 +198,9 @@ async function generarResumen() {
 
 // Mostrar resumen
 function displayResumen(resumen) {
-    elements.resumenContent.innerHTML = `<p>${resumen}</p>`;
+    // Convertir saltos de línea \n a <br> para HTML
+    const resumenFormateado = resumen.replace(/\n/g, '<br>');
+    elements.resumenContent.innerHTML = resumenFormateado;
     elements.resumenSection.classList.remove('hidden');
 }
 
