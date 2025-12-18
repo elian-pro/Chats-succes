@@ -98,19 +98,12 @@ async function loadChats() {
 function populateChatSelect(chats) {
     elements.chatSelect.innerHTML = '<option value="">Seleccione un chat...</option>';
     
-    chats.forEach((chat, index) => {
+    chats.forEach(chat => {
         const option = document.createElement('option');
         option.value = chat;
         option.textContent = chat;
         elements.chatSelect.appendChild(option);
     });
-    
-    // Pre-seleccionar el primer chat si existe
-    if (chats.length > 0) {
-        elements.chatSelect.value = chats[0];
-        state.selectedChat = chats[0];
-        validateForm();
-    }
 }
 
 // Configurar event listeners
