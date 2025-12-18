@@ -228,32 +228,40 @@ async function generarResumen() {
 // Mostrar resumen
 function displayResumen(resumen) {
     console.log('Procesando resumen...');
-    console.log('Resumen crudo:', JSON.stringify(resumen));
+    console.log('Resumen crudo:', resumen);
+    console.log('Tipo:', typeof resumen);
     
-    // Limpiar el contenido previo
-    elements.resumenContent.innerHTML = '';
+    // El resumen puede venir como string con \n escapados
+    // Necesitamos parsear el JSON si viene así
+    let textoLimpio = resumen;
     
-    // Primero intentar dividir por diferentes tipos de saltos de línea
-    let texto = resumen;
-    
-    // Reemplazar diferentes formatos de saltos de línea
-    texto = texto.replace(/\\n\\n/g, '<br><br>'); // Doble salto
-    texto = texto.replace(/\\n/g, '<br>'); // Salto simple
-    texto = texto.replace(/\n\n/g, '<br><br>'); // Salto real doble
-    texto = texto.replace(/\n/g, '<br>'); // Salto real simple
-    
-    // Agregar saltos antes de marcadores comunes de sección
-    texto = texto.replace(/(\*\*\d+\sde\s\w+:?\*\*)/g, '<br><br>$1');
-    texto = texto.replace(/(###\s+\*\*[^*]+\*\*)/g, '<br><br>$1');
-    texto = texto.replace(/(---)/g, '<br><br>$1<br>');
-    
-    // Si después de todo no hay <br>, dividir por puntos seguidos
-    if (!texto.includes('<br>')) {
-        texto = texto.replace(/\.\s+-\s+/g, '.<br><br>- ');
-        texto = texto.replace(/\.\s+\*\*/g, '.<br><br>**');
+    // Si viene como string JSON escapado, parsearlo
+    if (typeof textoLimpio === 'string' && textoLimpio.includes('\\n')) {
+        try {
+            // Intentar parsear como JSON para desescapar
+            textoLimpio = JSON.parse('"' + textoLimpio.replace(/"/g, '\\"') + '"');
+        } catch (e) {
+            console.log('No se pudo parsear como JSON, usando replace directo');
+            // Si falla, hacer replace manual
+            textoLimpio = textoLimpio.replace(/\\n/g, '\n');
+        }
     }
     
-    elements.resumenContent.innerHTML = texto;
+    console.log('Texto después de desescapar:', textoLimpio);
+    
+    // Ahora convertir los saltos de línea reales a HTML
+    let html = textoLimpio
+        .replace(/\n\n/g, '<br><br>')  // Doble salto
+        .replace(/\n/g, '<br>');        // Salto simple
+    
+    // Agregar estilos a los encabezados markdown
+    html = html.replace(/###\s*(.+?)<br>/g, '<strong style="font-size: 1.1em; color: var(--accent-primary);">$1</strong><br>');
+    html = html.replace(/##\s*(.+?)<br>/g, '<strong style="font-size: 1.2em; color: var(--text-primary);">$1</strong><br><br>');
+    
+    // Mejorar las líneas con --- 
+    html = html.replace(/---/g, '<hr style="border: none; border-top: 1px solid var(--border-color); margin: 1em 0;">');
+    
+    elements.resumenContent.innerHTML = html;
     elements.resumenSection.classList.remove('hidden');
     console.log('Resumen procesado y mostrado');
 }
