@@ -50,6 +50,25 @@ function initializeTabs() {
     });
 }
 
+// Función para cambiar de tab programáticamente
+function switchToTab(tabName) {
+    const tabs = document.querySelectorAll('.tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    // Remover active de todos
+    tabs.forEach(t => t.classList.remove('active'));
+    tabContents.forEach(tc => tc.classList.remove('active'));
+    
+    // Activar el tab específico
+    const targetTab = document.querySelector(`[data-tab="${tabName}"]`);
+    const targetContent = document.getElementById(tabName);
+    
+    if (targetTab && targetContent) {
+        targetTab.classList.add('active');
+        targetContent.classList.add('active');
+    }
+}
+
 // Inicializar inputs de fecha con fecha de hoy
 function initializeDateInputs() {
     const today = new Date().toISOString().split('T')[0];
@@ -183,6 +202,11 @@ async function generarResumen() {
         // Mostrar conversación
         if (data.conversacion && Array.isArray(data.conversacion)) {
             displayConversacion(data.conversacion, data.diccionario);
+            
+            // Cambiar automáticamente a la pestaña Chat después de cargar la conversación
+            setTimeout(() => {
+                switchToTab('chat');
+            }, 500); // Pequeño delay para que el usuario vea que se generó el resumen
         }
         
         showNotification('Resumen generado exitosamente', 'success');
