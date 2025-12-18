@@ -236,8 +236,8 @@ function displayResumen(resumen) {
     
     // Reemplazar el marcador personalizado por <br>
     let html = resumen
-        .replace(/\|\|SALTO\|\|/g, '<br>')  // Nuestro marcador personalizado
-        .replace(/###NEWLINE###/g, '<br>')  // Alternativa por si cambias el marcador
+        .replace(/###NEWLINE###/g, '<br>')  // Tu marcador actual
+        .replace(/\|\|SALTO\|\|/g, '<br>')  // Alternativa
         .replace(/\\n/g, '<br>')            // Fallback para \n escapados
         .replace(/\n/g, '<br>');            // Fallback para \n reales
     
