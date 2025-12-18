@@ -362,6 +362,47 @@ function showNotification(message, type = 'info') {
     console.log(`[${type.toUpperCase()}] ${message}`);
 }
 
+// Copiar resumen al portapapeles
+async function copySummaryToClipboard() {
+    const btnCopy = document.getElementById('btnCopySummary');
+    const resumenText = elements.resumenContent.textContent;
+
+    if (!resumenText || resumenText.trim() === '') {
+        showNotification('No hay resumen para copiar', 'error');
+        return;
+    }
+
+    try {
+        await navigator.clipboard.writeText(resumenText);
+
+        // Cambiar el texto y estilo del botón temporalmente
+        const originalText = btnCopy.innerHTML;
+        btnCopy.innerHTML = '✓ Copiado!';
+        btnCopy.classList.add('copied');
+
+        // Restaurar después de 2 segundos
+        setTimeout(() => {
+            btnCopy.innerHTML = originalText;
+            btnCopy.classList.remove('copied');
+        }, 2000);
+
+        showNotification('Resumen copiado al portapapeles', 'success');
+        console.log('✅ Resumen copiado exitosamente');
+
+    } catch (error) {
+        console.error('Error al copiar al portapapeles:', error);
+        showNotification('Error al copiar. Por favor, intente nuevamente.', 'error');
+    }
+}
+
+// Event listener para el botón de copiar
+document.addEventListener('DOMContentLoaded', () => {
+    const btnCopy = document.getElementById('btnCopySummary');
+    if (btnCopy) {
+        btnCopy.addEventListener('click', copySummaryToClipboard);
+    }
+});
+
 // Funcionalidad del botón Admin
 document.querySelector('.btn-admin')?.addEventListener('click', () => {
     alert('Funcionalidad de Admin próximamente');

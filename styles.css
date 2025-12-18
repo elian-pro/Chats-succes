@@ -170,6 +170,19 @@ body {
     color: var(--text-primary);
 }
 
+/* Section Header (for title + button layout) */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+    gap: var(--spacing-md);
+}
+
+.section-header .section-title {
+    margin-bottom: 0;
+}
+
 /* Filters Grid */
 .filters-grid {
     display: grid;
@@ -245,6 +258,37 @@ body {
     color: var(--text-muted);
     cursor: not-allowed;
     opacity: 0.5;
+}
+
+/* Copy Button */
+.btn-copy {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.btn-copy:hover {
+    background-color: var(--bg-hover);
+    border-color: var(--accent-primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-copy:active {
+    transform: translateY(0);
+}
+
+.btn-copy.copied {
+    background-color: var(--accent-green);
+    border-color: var(--accent-green);
+    color: var(--bg-primary);
 }
 
 /* Loading Spinner */
