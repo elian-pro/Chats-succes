@@ -138,10 +138,23 @@ function validateForm() {
 // Generar resumen y cargar conversación
 async function generarResumen() {
     try {
+        console.log('Iniciando generación de resumen...');
+        console.log('Elements:', {
+            resumenSection: elements.resumenSection,
+            chatConversacionContent: elements.chatConversacionContent,
+            loadingSpinner: elements.loadingSpinner
+        });
+        
         // Verificar que los elementos existen
-        if (!elements.resumenSection || !elements.chatConversacionContent) {
-            console.error('Elementos del DOM no encontrados');
-            showNotification('Error: Elementos del DOM no encontrados', 'error');
+        if (!elements.resumenSection) {
+            console.error('resumenSection no encontrado');
+            alert('Error: Elemento resumenSection no encontrado');
+            return;
+        }
+        
+        if (!elements.chatConversacionContent) {
+            console.error('chatConversacionContent no encontrado');
+            alert('Error: Elemento chatConversacionContent no encontrado');
             return;
         }
         
