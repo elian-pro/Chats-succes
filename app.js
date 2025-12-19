@@ -214,21 +214,11 @@ async function generarResumen() {
             if (Array.isArray(data.conversacion)) {
                 console.log('💬 Mostrando conversación con', data.conversacion.length, 'mensajes');
                 displayConversacion(data.conversacion, data.diccionario);
-
-                // Cambiar automáticamente a la pestaña Chat
-                setTimeout(() => {
-                    switchToTab('chat');
-                }, 500);
             }
             // Si conversacion es un string (formato de texto plano)
             else if (typeof data.conversacion === 'string') {
                 console.log('💬 Mostrando conversación en formato texto');
                 displayConversacionTexto(data.conversacion);
-
-                // Cambiar automáticamente a la pestaña Chat
-                setTimeout(() => {
-                    switchToTab('chat');
-                }, 500);
             }
         } else {
             console.log('ℹ️ No hay conversación en la respuesta');
