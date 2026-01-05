@@ -5,6 +5,7 @@ const state = {
     fechaDesde: null,
     fechaHasta: null,
     conversacionData: null,
+    conversacionTexto: null,
     userColors: {}
 };
 
@@ -280,21 +281,30 @@ function displayConversacion(conversacion, diccionario) {
 function displayConversacionTexto(conversacionTexto) {
     console.log('💬 displayConversacionTexto() ejecutándose...');
 
+    // Guardar la conversación en el estado para usarla en las consultas
+    state.conversacionTexto = conversacionTexto;
+
     // Limpiar contenido anterior
     elements.conversacionContent.innerHTML = '';
 
     // Verificar que conversacionSection esté visible
     elements.conversacionSection.classList.remove('hidden');
 
-    // Mostrar campo de búsqueda en lugar de info
+    // Mostrar campo de búsqueda con botón enviar
     elements.conversacionInfo.style.display = 'block';
     elements.conversacionInfo.innerHTML = `
-        <input
-            type="text"
-            id="chatSearchInput"
-            class="chat-search-input"
-            placeholder="Consulta información del chat"
-        />
+        <div class="chat-search-container">
+            <input
+                type="text"
+                id="chatSearchInput"
+                class="chat-search-input"
+                placeholder="Consulta información del chat"
+            />
+            <button id="btnEnviarConsulta" class="btn-enviar-consulta">
+                Enviar
+            </button>
+        </div>
+        <div id="chatRespuesta" class="chat-respuesta hidden"></div>
     `;
 
     // Crear un div para mostrar el texto de la conversación
@@ -308,6 +318,9 @@ function displayConversacionTexto(conversacionTexto) {
     conversacionDiv.textContent = conversacionTexto;
 
     elements.conversacionContent.appendChild(conversacionDiv);
+
+    // Configurar event listener para el botón enviar
+    setupConsultaListener();
 
     console.log('✅ Conversación en formato texto mostrada');
 }
@@ -447,6 +460,116 @@ document.addEventListener('DOMContentLoaded', () => {
         btnCopy.addEventListener('click', copySummaryToClipboard);
     }
 });
+
+// Configurar listener para consultas del chat
+function setupConsultaListener() {
+    const btnEnviar = document.getElementById('btnEnviarConsulta');
+    const inputConsulta = document.getElementById('chatSearchInput');
+
+    if (btnEnviar && inputConsulta) {
+        // Evento del botón
+        btnEnviar.addEventListener('click', enviarConsulta);
+
+        // Evento de Enter en el input
+        inputConsulta.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                enviarConsulta();
+            }
+        });
+    }
+}
+
+// Enviar consulta al webhook de n8n
+async function enviarConsulta() {
+    const inputConsulta = document.getElementById('chatSearchInput');
+    const btnEnviar = document.getElementById('btnEnviarConsulta');
+    const respuestaDiv = document.getElementById('chatRespuesta');
+
+    const pregunta = inputConsulta.value.trim();
+
+    if (!pregunta) {
+        showNotification('Por favor, escribe una pregunta', 'error');
+        return;
+    }
+
+    if (!state.conversacionTexto) {
+        showNotification('No hay conversación cargada', 'error');
+        return;
+    }
+
+    try {
+        console.log('🔄 Enviando consulta al webhook...');
+
+        // Deshabilitar input y botón mientras se procesa
+        inputConsulta.disabled = true;
+        btnEnviar.disabled = true;
+        btnEnviar.textContent = 'Procesando...';
+
+        // Mostrar div de respuesta con loading
+        respuestaDiv.classList.remove('hidden');
+        respuestaDiv.innerHTML = '<p class="loading-text">🤔 Analizando conversación...</p>';
+
+        // Preparar payload
+        const payload = {
+            pregunta: pregunta,
+            historial: state.conversacionTexto
+        };
+
+        console.log('📤 Enviando payload:', { pregunta });
+
+        // Enviar al webhook
+        const response = await fetch('https://n8n-n8n.9qd6cz.easypanel.host/webhook/d981fada-f6a1-4122-b35b-ec11f71086c0', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('✅ Respuesta recibida:', data);
+
+        // Mostrar la respuesta
+        if (data.respuesta || data.response || data.answer) {
+            const respuestaTexto = data.respuesta || data.response || data.answer;
+            respuestaDiv.innerHTML = `
+                <div class="respuesta-header">
+                    <strong>💡 Respuesta:</strong>
+                </div>
+                <div class="respuesta-texto">${escapeHtml(respuestaTexto)}</div>
+            `;
+        } else {
+            respuestaDiv.innerHTML = `
+                <div class="respuesta-texto">
+                    ${JSON.stringify(data, null, 2)}
+                </div>
+            `;
+        }
+
+        showNotification('Respuesta recibida', 'success');
+
+        // Limpiar input
+        inputConsulta.value = '';
+
+    } catch (error) {
+        console.error('❌ Error al enviar consulta:', error);
+        respuestaDiv.innerHTML = `
+            <div class="respuesta-error">
+                ❌ Error al procesar la consulta. Por favor, intenta nuevamente.
+            </div>
+        `;
+        showNotification('Error al procesar la consulta', 'error');
+    } finally {
+        // Rehabilitar input y botón
+        inputConsulta.disabled = false;
+        btnEnviar.disabled = false;
+        btnEnviar.textContent = 'Enviar';
+    }
+}
 
 // Funcionalidad del botón Admin
 document.querySelector('.btn-admin')?.addEventListener('click', () => {
