@@ -286,8 +286,16 @@ function displayConversacionTexto(conversacionTexto) {
     // Verificar que conversacionSection esté visible
     elements.conversacionSection.classList.remove('hidden');
 
-    // Ocultar la info (no se necesita para formato texto)
-    elements.conversacionInfo.style.display = 'none';
+    // Mostrar campo de búsqueda en lugar de info
+    elements.conversacionInfo.style.display = 'block';
+    elements.conversacionInfo.innerHTML = `
+        <input
+            type="text"
+            id="chatSearchInput"
+            class="chat-search-input"
+            placeholder="Consulta información del chat"
+        />
+    `;
 
     // Crear un div para mostrar el texto de la conversación
     const conversacionDiv = document.createElement('div');
