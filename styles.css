@@ -170,6 +170,19 @@ body {
     color: var(--text-primary);
 }
 
+/* Section Header (for title + button layout) */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+    gap: var(--spacing-md);
+}
+
+.section-header .section-title {
+    margin-bottom: 0;
+}
+
 /* Filters Grid */
 .filters-grid {
     display: grid;
@@ -247,6 +260,37 @@ body {
     opacity: 0.5;
 }
 
+/* Copy Button */
+.btn-copy {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.btn-copy:hover {
+    background-color: var(--bg-hover);
+    border-color: var(--accent-primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-copy:active {
+    transform: translateY(0);
+}
+
+.btn-copy.copied {
+    background-color: var(--accent-green);
+    border-color: var(--accent-green);
+    color: var(--bg-primary);
+}
+
 /* Loading Spinner */
 .loading-spinner {
     text-align: center;
@@ -305,6 +349,99 @@ body {
     display: flex;
     gap: var(--spacing-lg);
     flex-wrap: wrap;
+}
+
+/* Chat Search Container */
+.chat-search-container {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+}
+
+.chat-search-input {
+    flex: 1;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 0.75rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.chat-search-input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.1);
+}
+
+.chat-search-input::placeholder {
+    color: var(--text-muted);
+}
+
+.chat-search-input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Botón Enviar Consulta */
+.btn-enviar-consulta {
+    background-color: var(--accent-primary);
+    color: var(--text-primary);
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.btn-enviar-consulta:hover:not(:disabled) {
+    background-color: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-enviar-consulta:disabled {
+    background-color: var(--bg-hover);
+    color: var(--text-muted);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Chat Respuesta */
+.chat-respuesta {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--accent-primary);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    animation: fadeIn 0.3s ease;
+}
+
+.respuesta-header {
+    color: var(--accent-primary);
+    margin-bottom: var(--spacing-sm);
+    font-size: 1rem;
+}
+
+.respuesta-texto {
+    color: var(--text-primary);
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+.respuesta-error {
+    color: var(--accent-red);
+    font-weight: 500;
+}
+
+.loading-text {
+    color: var(--text-secondary);
+    font-style: italic;
+    margin: 0;
 }
 
 .info-item {

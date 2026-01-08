@@ -5,6 +5,7 @@ const state = {
     fechaDesde: null,
     fechaHasta: null,
     conversacionData: null,
+    conversacionTexto: null,
     userColors: {}
 };
 
@@ -193,10 +194,13 @@ async function generarResumen() {
         
         const data = await response.json();
         console.log('✅ Respuesta recibida:', data);
-        
+        console.log('🔍 Claves en la respuesta:', Object.keys(data));
+        console.log('🔍 Tipo de data.conversacion:', typeof data.conversacion);
+        console.log('🔍 Es Array data.conversacion:', Array.isArray(data.conversacion));
+
         // Guardar datos
         state.conversacionData = data;
-        
+
         // ============ MOSTRAR RESUMEN ============
         if (data.resumen) {
             console.log('📝 Mostrando resumen...');
@@ -204,16 +208,19 @@ async function generarResumen() {
         } else {
             console.error('❌ No hay resumen en la respuesta');
         }
-        
+
         // ============ MOSTRAR CONVERSACIÓN ============
-        if (data.conversacion && Array.isArray(data.conversacion)) {
-            console.log('💬 Mostrando conversación con', data.conversacion.length, 'mensajes');
-            displayConversacion(data.conversacion, data.diccionario);
-            
-            // Cambiar automáticamente a la pestaña Chat
-            setTimeout(() => {
-                switchToTab('chat');
-            }, 500);
+        if (data.conversacion) {
+            // Si conversacion es un array de objetos (formato estructurado)
+            if (Array.isArray(data.conversacion)) {
+                console.log('💬 Mostrando conversación con', data.conversacion.length, 'mensajes');
+                displayConversacion(data.conversacion, data.diccionario);
+            }
+            // Si conversacion es un string (formato de texto plano)
+            else if (typeof data.conversacion === 'string') {
+                console.log('💬 Mostrando conversación en formato texto');
+                displayConversacionTexto(data.conversacion);
+            }
         } else {
             console.log('ℹ️ No hay conversación en la respuesta');
         }
@@ -233,22 +240,14 @@ async function generarResumen() {
 function displayResumen(resumen) {
     console.log('📄 displayResumen() ejecutándose...');
     console.log('Texto completo recibido:', resumen);
-    
-   // Reemplazar los marcadores ###NEWLINE### con saltos de línea reales
 
+    // Reemplazar los marcadores ###NEWLINE### con saltos de línea reales
     const resumenConSaltos = resumen.replace(/###NEWLINE###/g, '\n');
 
- 
-
     // Usar textContent que automáticamente preserva saltos de línea
-
     elements.resumenContent.textContent = resumenConSaltos;
-
     elements.resumenContent.style.whiteSpace = 'pre-wrap';
-
     elements.resumenSection.classList.remove('hidden');
-
- 
 
     console.log('✅ Resumen mostrado con saltos de línea');
 }
@@ -276,6 +275,54 @@ function displayConversacion(conversacion, diccionario) {
     });
     
     console.log('✅ Conversación mostrada. Total elementos:', elements.conversacionContent.children.length);
+}
+
+// Mostrar conversación en formato texto
+function displayConversacionTexto(conversacionTexto) {
+    console.log('💬 displayConversacionTexto() ejecutándose...');
+
+    // Guardar la conversación en el estado para usarla en las consultas
+    state.conversacionTexto = conversacionTexto;
+
+    // Limpiar contenido anterior
+    elements.conversacionContent.innerHTML = '';
+
+    // Verificar que conversacionSection esté visible
+    elements.conversacionSection.classList.remove('hidden');
+
+    // Mostrar campo de búsqueda con botón enviar
+    elements.conversacionInfo.style.display = 'block';
+    elements.conversacionInfo.innerHTML = `
+        <div class="chat-search-container">
+            <input
+                type="text"
+                id="chatSearchInput"
+                class="chat-search-input"
+                placeholder="Consulta información del chat"
+            />
+            <button id="btnEnviarConsulta" class="btn-enviar-consulta">
+                Enviar
+            </button>
+        </div>
+        <div id="chatRespuesta" class="chat-respuesta hidden"></div>
+    `;
+
+    // Crear un div para mostrar el texto de la conversación
+    const conversacionDiv = document.createElement('div');
+    conversacionDiv.className = 'conversacion-texto';
+    conversacionDiv.style.whiteSpace = 'pre-wrap';
+    conversacionDiv.style.padding = 'var(--spacing-md)';
+    conversacionDiv.style.backgroundColor = 'var(--bg-secondary)';
+    conversacionDiv.style.borderRadius = 'var(--border-radius)';
+    conversacionDiv.style.lineHeight = '1.6';
+    conversacionDiv.textContent = conversacionTexto;
+
+    elements.conversacionContent.appendChild(conversacionDiv);
+
+    // Configurar event listener para el botón enviar
+    setupConsultaListener();
+
+    console.log('✅ Conversación en formato texto mostrada');
 }
 
 // Asignar colores a usuarios
@@ -371,6 +418,157 @@ function escapeHtml(text) {
 // Mostrar notificación
 function showNotification(message, type = 'info') {
     console.log(`[${type.toUpperCase()}] ${message}`);
+}
+
+// Copiar resumen al portapapeles
+async function copySummaryToClipboard() {
+    const btnCopy = document.getElementById('btnCopySummary');
+    const resumenText = elements.resumenContent.textContent;
+
+    if (!resumenText || resumenText.trim() === '') {
+        showNotification('No hay resumen para copiar', 'error');
+        return;
+    }
+
+    try {
+        await navigator.clipboard.writeText(resumenText);
+
+        // Cambiar el texto y estilo del botón temporalmente
+        const originalText = btnCopy.innerHTML;
+        btnCopy.innerHTML = '✓ Copiado!';
+        btnCopy.classList.add('copied');
+
+        // Restaurar después de 2 segundos
+        setTimeout(() => {
+            btnCopy.innerHTML = originalText;
+            btnCopy.classList.remove('copied');
+        }, 2000);
+
+        showNotification('Resumen copiado al portapapeles', 'success');
+        console.log('✅ Resumen copiado exitosamente');
+
+    } catch (error) {
+        console.error('Error al copiar al portapapeles:', error);
+        showNotification('Error al copiar. Por favor, intente nuevamente.', 'error');
+    }
+}
+
+// Event listener para el botón de copiar
+document.addEventListener('DOMContentLoaded', () => {
+    const btnCopy = document.getElementById('btnCopySummary');
+    if (btnCopy) {
+        btnCopy.addEventListener('click', copySummaryToClipboard);
+    }
+});
+
+// Configurar listener para consultas del chat
+function setupConsultaListener() {
+    const btnEnviar = document.getElementById('btnEnviarConsulta');
+    const inputConsulta = document.getElementById('chatSearchInput');
+
+    if (btnEnviar && inputConsulta) {
+        // Evento del botón
+        btnEnviar.addEventListener('click', enviarConsulta);
+
+        // Evento de Enter en el input
+        inputConsulta.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                enviarConsulta();
+            }
+        });
+    }
+}
+
+// Enviar consulta al webhook de n8n
+async function enviarConsulta() {
+    const inputConsulta = document.getElementById('chatSearchInput');
+    const btnEnviar = document.getElementById('btnEnviarConsulta');
+    const respuestaDiv = document.getElementById('chatRespuesta');
+
+    const pregunta = inputConsulta.value.trim();
+
+    if (!pregunta) {
+        showNotification('Por favor, escribe una pregunta', 'error');
+        return;
+    }
+
+    if (!state.conversacionTexto) {
+        showNotification('No hay conversación cargada', 'error');
+        return;
+    }
+
+    try {
+        console.log('🔄 Enviando consulta al webhook...');
+
+        // Deshabilitar input y botón mientras se procesa
+        inputConsulta.disabled = true;
+        btnEnviar.disabled = true;
+        btnEnviar.textContent = 'Procesando...';
+
+        // Mostrar div de respuesta con loading
+        respuestaDiv.classList.remove('hidden');
+        respuestaDiv.innerHTML = '<p class="loading-text">🤔 Analizando conversación...</p>';
+
+        // Preparar payload
+        const payload = {
+            pregunta: pregunta,
+            historial: state.conversacionTexto
+        };
+
+        console.log('📤 Enviando payload:', { pregunta });
+
+        // Enviar al webhook
+        const response = await fetch('https://n8n-n8n.9qd6cz.easypanel.host/webhook/d981fada-f6a1-4122-b35b-ec11f71086c0', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('✅ Respuesta recibida:', data);
+
+        // Mostrar la respuesta
+        if (data.respuesta || data.response || data.answer) {
+            const respuestaTexto = data.respuesta || data.response || data.answer;
+            respuestaDiv.innerHTML = `
+                <div class="respuesta-header">
+                    <strong>💡 Respuesta:</strong>
+                </div>
+                <div class="respuesta-texto">${escapeHtml(respuestaTexto)}</div>
+            `;
+        } else {
+            respuestaDiv.innerHTML = `
+                <div class="respuesta-texto">
+                    ${JSON.stringify(data, null, 2)}
+                </div>
+            `;
+        }
+
+        showNotification('Respuesta recibida', 'success');
+
+        // Limpiar input
+        inputConsulta.value = '';
+
+    } catch (error) {
+        console.error('❌ Error al enviar consulta:', error);
+        respuestaDiv.innerHTML = `
+            <div class="respuesta-error">
+                ❌ Error al procesar la consulta. Por favor, intenta nuevamente.
+            </div>
+        `;
+        showNotification('Error al procesar la consulta', 'error');
+    } finally {
+        // Rehabilitar input y botón
+        inputConsulta.disabled = false;
+        btnEnviar.disabled = false;
+        btnEnviar.textContent = 'Enviar';
+    }
 }
 
 // Funcionalidad del botón Admin
